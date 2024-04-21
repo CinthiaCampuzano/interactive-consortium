@@ -4,47 +4,32 @@ import com.utn.interactiveconsortium.dto.AdministratorDto;
 import com.utn.interactiveconsortium.entity.AdministratorEntity;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
+import com.utn.interactiveconsortium.mapper.AdministratorMapper;
 import com.utn.interactiveconsortium.repository.AdministratorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
+
 public class AdministratorService {
 
     private final AdministratorRepository administratorRepository;
+    private final AdministratorMapper administratorMapper;
 
-    public List<AdministratorDto> getAdministrators(){
-        List<AdministratorEntity> administratorEntityList = administratorRepository.findAll();
-
-        List<AdministratorDto> administratorDtoList = administratorEntityList.stream().
-                map(administrator -> AdministratorDto.builder()
-                        .administratorId(administrator.getAdministratorId())
-                        .name(administrator.getName())
-                        .lastName(administrator.getLastName())
-                        .mail(administrator.getMail())
-                        .dni(administrator.getDni())
-                        .build()
-                ).toList();
-        return administratorDtoList;
+    public Page<AdministratorDto> getAdministrators(Pageable page){
+        return administratorMapper.toPage(administratorRepository.findAll(page));
     }
 
-    public List<AdministratorDto> getAdministrator(String nameAdministrator){
-        List<AdministratorEntity> administratorEntityList = administratorRepository.findAByName(nameAdministrator);
+    public Page<AdministratorDto> getAdministrator( String name,String lastName, String mail, String dni, Pageable page){
+        Page<AdministratorEntity> administratorEntityPage = administratorRepository.findAdministratorsByFilters(name, lastName, mail, dni, page);
 
-        List<AdministratorDto> administratorDtoList = administratorEntityList.stream().
-                map(administrator -> AdministratorDto.builder()
-                        .administratorId(administrator.getAdministratorId())
-                        .name(administrator.getName())
-                        .lastName(administrator.getLastName())
-                        .mail(administrator.getMail())
-                        .dni(administrator.getDni())
-                        .build()
-                ).toList();
-        return administratorDtoList;
+        return administratorMapper.toPage(administratorEntityPage);
 
     }
 
@@ -58,22 +43,11 @@ public class AdministratorService {
             throw new EntityAlreadyExistsException("Ya existe un administrador con ese mail");
         }
 
-        AdministratorEntity newAdministratorEntity = AdministratorEntity.builder()
-                .name(newAdministrator.getName())
-                .lastName(newAdministrator.getLastName())
-                .mail(newAdministrator.getMail())
-                .dni(newAdministrator.getDni())
-                .build();
+        AdministratorEntity newAdministratorEntity = administratorMapper.convertDtoToEntity(newAdministrator);
 
         administratorRepository.save(newAdministratorEntity);
 
-        AdministratorDto newAdministratorDto = AdministratorDto.builder()
-                .administratorId(newAdministratorEntity.getAdministratorId())
-                .name(newAdministratorEntity.getName())
-                .lastName(newAdministratorEntity.getLastName())
-                .mail(newAdministratorEntity.getMail())
-                .dni(newAdministratorEntity.getDni())
-                .build();
+        AdministratorDto newAdministratorDto = administratorMapper.convertEntityToDto(newAdministratorEntity);
 
         return newAdministratorDto;
     }
@@ -98,12 +72,13 @@ public class AdministratorService {
         }
     }
 
-       public void deleteAdministrator(Long idAdministrator) throws EntityNotFoundException{
+    public void deleteAdministrator(Long idAdministrator) throws EntityNotFoundException{
             boolean administratorExists = administratorRepository.existsById(idAdministrator);
 
             if(!administratorExists) {
                 throw new EntityNotFoundException("No se encontro el administrador");
             }
             administratorRepository.deleteById(idAdministrator);
-        }
+    }
+
 }
