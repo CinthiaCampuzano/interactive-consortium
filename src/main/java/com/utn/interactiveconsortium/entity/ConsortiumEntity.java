@@ -3,6 +3,8 @@ package com.utn.interactiveconsortium.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Table(name = "consortium")
 @Entity
 @Setter
@@ -24,4 +26,10 @@ public class ConsortiumEntity {
 
     private String province;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "administrator_id")
+    private AdministratorEntity administrator;
+
+    @OneToMany(mappedBy = "consortium", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DepartmentEntity> departments;
 }

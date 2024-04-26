@@ -3,6 +3,8 @@ package com.utn.interactiveconsortium.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Builder
 @Data
 public class ConsortiumDto {
@@ -15,5 +17,7 @@ public class ConsortiumDto {
     private String city;
 
     private String province;
+
+    private List<AdministratorDto> administrators;
 
 }

@@ -3,6 +3,8 @@ package com.utn.interactiveconsortium.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Table(name = "administrator")
 @Entity
 @Setter
@@ -24,5 +26,7 @@ public class AdministratorEntity {
 
     private String dni;
 
+    @OneToMany(mappedBy = "administrator", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ConsortiumEntity> consortiums;
 
 }
