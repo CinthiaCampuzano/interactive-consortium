@@ -10,4 +10,10 @@ public class DepartmentDto {
 
     private String code;
 
+    private ConsortiumDto consortium;
+
+    private PersonDto propietary;
+
+    private PersonDto resident;
+
 }

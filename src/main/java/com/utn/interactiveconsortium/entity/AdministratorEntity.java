@@ -26,7 +26,8 @@ public class AdministratorEntity {
 
     private String dni;
 
-    @OneToMany(mappedBy = "administrator", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "administrator", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+                                                      CascadeType.REFRESH, CascadeType.DETACH})
     private List<ConsortiumEntity> consortiums;
 
 }

@@ -26,7 +26,7 @@ public class DepartmentController {
     }
 
     @PostMapping
-    public DepartmentDto createDepartment(@RequestBody DepartmentDto newDepartment) throws EntityAlreadyExistsException {
+    public DepartmentDto createDepartment(@RequestBody DepartmentDto newDepartment) throws EntityAlreadyExistsException, EntityNotFoundException {
         return departmentService.createDepartment(newDepartment);
 
     }

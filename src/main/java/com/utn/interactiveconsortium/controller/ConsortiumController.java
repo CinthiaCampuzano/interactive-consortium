@@ -22,14 +22,20 @@ public class ConsortiumController {
     @GetMapping(value = "filterBy")
     public Page<ConsortiumDto> getConsortium(@RequestParam(required = false) String name,
                                              @RequestParam(required = false) String city,
-                                             @RequestParam(required = false) String province,Pageable page){
+                                             @RequestParam(required = false) String province,Pageable page)
+    {
         return consortiumService.getConsortium(name, city, province, page);
     }
 
     @PostMapping
-    public ConsortiumDto createConsortium(@RequestBody ConsortiumDto newConsortium) {
+    public ConsortiumDto createConsortium(@RequestBody ConsortiumDto newConsortium) throws EntityNotFoundException {
         return consortiumService.createConsortium(newConsortium);
 
+    }
+
+    @PostMapping(value = "consortiumPerson")
+    public void addConsortiumAndPerson(@RequestParam Long idConsortium, @RequestParam Long idPerson) throws EntityNotFoundException {
+        consortiumService.addConsortiumAndPerson(idConsortium, idPerson);
     }
 
     @PutMapping
@@ -42,5 +48,7 @@ public class ConsortiumController {
         consortiumService.deleteConsortium(idConsortium);
 
     }
+
+
 
 }

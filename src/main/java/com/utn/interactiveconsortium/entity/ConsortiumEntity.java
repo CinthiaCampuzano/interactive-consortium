@@ -26,10 +26,21 @@ public class ConsortiumEntity {
 
     private String province;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "administrator_id")
     private AdministratorEntity administrator;
 
     @OneToMany(mappedBy = "consortium", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DepartmentEntity> departments;
+
+    @ManyToMany
+    @JoinTable(
+            name = "consortium_person",
+            joinColumns = @JoinColumn(name = "consortium_id"),
+            inverseJoinColumns = @JoinColumn(name = "person_id"))
+    private List<PersonEntity> persons;
+
+    @OneToMany(mappedBy = "consortium", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AmenityEntity> amenities;
+
 }

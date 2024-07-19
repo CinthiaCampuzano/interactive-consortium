@@ -18,7 +18,15 @@ public class DepartmentEntity {
 
     private String code;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "consortium_id")
     private ConsortiumEntity consortium;
+
+    @ManyToOne
+    @JoinColumn(name = "propietary_id")
+    private PersonEntity propietary;
+
+    @ManyToOne
+    @JoinColumn(name = "resident_id")
+    private PersonEntity resident;
 }

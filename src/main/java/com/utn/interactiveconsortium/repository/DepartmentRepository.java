@@ -13,6 +13,8 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, Lo
             @Param("code") String code,
             Pageable page);
 
-    boolean existsByCode(@Param("code") String code);
+
+    @Query("SELECT CASE WHEN COUNT(d) > 0 THEN true ELSE false END FROM DepartmentEntity d WHERE d.code = :code AND d.consortium.consortiumId = :consortiumId")
+    boolean existsByCodeAndConsortiumId(@Param("code") String code, @Param("consortiumId") Long consortiumId);
 
 }

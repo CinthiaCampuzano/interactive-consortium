@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 
 @Mapper(componentModel = "spring")
 public interface ConsortiumMapper {
+
+//    @Mapping(target = "administratorId", source = "administrator.administratorId")
     ConsortiumDto convertEntityToDto(ConsortiumEntity consortiumEntity);
     ConsortiumEntity convertDtoToEntity(ConsortiumDto consortiumDto);
 

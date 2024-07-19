@@ -3,11 +3,10 @@ package com.utn.interactiveconsortium.dto;
 import lombok.Builder;
 import lombok.Data;
 
-
 @Builder
 @Data
-public class AdministratorDto {
-    private Long administratorId;
+public class PersonDto {
+    private Long personId;
 
     private String name;
 
@@ -17,5 +16,5 @@ public class AdministratorDto {
 
     private String dni;
 
-//    private List<ConsortiumDto> consortiums;
+    private String phoneNumber;
 }

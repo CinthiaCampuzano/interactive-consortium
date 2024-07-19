@@ -1,10 +1,14 @@
 package com.utn.interactiveconsortium.service;
 
 import com.utn.interactiveconsortium.dto.ConsortiumDto;
+import com.utn.interactiveconsortium.entity.AdministratorEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
+import com.utn.interactiveconsortium.entity.PersonEntity;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.ConsortiumMapper;
+import com.utn.interactiveconsortium.repository.AdministratorRepository;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
+import com.utn.interactiveconsortium.repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +18,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ConsortiumService {
     private final ConsortiumRepository consortiumRepository;
+    private final AdministratorRepository administratorRepository;
+    private final PersonRepository personRepository;
     private final ConsortiumMapper consortiumMapper;
 
     public Page<ConsortiumDto> getConsortiums(Pageable page){
@@ -26,9 +32,14 @@ public class ConsortiumService {
         return consortiumMapper.toPage(consortiumEntityPage);
     }
 
-    public ConsortiumDto createConsortium(ConsortiumDto newConsortium) {
+    public ConsortiumDto createConsortium(ConsortiumDto newConsortium) throws EntityNotFoundException {
 
         ConsortiumEntity newConsortiumEntity = consortiumMapper.convertDtoToEntity(newConsortium);
+
+        AdministratorEntity administrator = administratorRepository.findById(newConsortium.getAdministrator().getAdministratorId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro el administrador"));
+
+        newConsortiumEntity.setAdministrator(administrator);
 
         consortiumRepository.save(newConsortiumEntity);
 
@@ -51,6 +62,8 @@ public class ConsortiumService {
         consortiumToUpdateEntity.setAddress(consortiumToUpdate.getAddress());
         consortiumToUpdateEntity.setCity(consortiumToUpdate.getCity());
         consortiumToUpdateEntity.setProvince(consortiumToUpdate.getProvince());
+        consortiumToUpdateEntity.setAdministrator(administratorRepository.findById(consortiumToUpdate.getAdministrator().getAdministratorId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro el administrador")));
 
         consortiumRepository.save(consortiumToUpdateEntity);
     }
@@ -62,5 +75,17 @@ public class ConsortiumService {
             throw new EntityNotFoundException("No se encontro el consorcio");
         }
         consortiumRepository.deleteById(idConsortium);
+    }
+
+    public void addConsortiumAndPerson(Long idConsortium, Long idPerson) throws EntityNotFoundException {
+        ConsortiumEntity consortium = consortiumRepository.findById(idConsortium)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro el consorcio"));
+
+        PersonEntity person = personRepository.findById(idPerson)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro la persona"));
+
+        consortium.getPersons().add(person);
+        consortiumRepository.save(consortium);
+
     }
 }
