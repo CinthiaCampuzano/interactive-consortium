@@ -20,4 +20,15 @@ public class RestResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleNotFound(EntityNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+    @ExceptionHandler(value = {BookingNotAvailableException.class})
+    public ResponseEntity<Object> handleBookingNotAvailable(BookingNotAvailableException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(value = {BookingLimitExceededException.class})
+    public ResponseEntity<Object> handleBookingLimitExceeded(BookingLimitExceededException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+
 }

@@ -17,5 +17,4 @@ public class AdministratorDto {
 
     private String dni;
 
-//    private List<ConsortiumDto> consortiums;
 }
