@@ -27,6 +27,8 @@ public class PersonEntity {
 
     private String phoneNumber;
 
+    private String password;
+
     @OneToMany(mappedBy = "propietary", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.REFRESH, CascadeType.DETACH})
     private List<DepartmentEntity> propietaryDepartments;

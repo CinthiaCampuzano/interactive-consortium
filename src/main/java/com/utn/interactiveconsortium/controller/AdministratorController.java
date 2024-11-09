@@ -8,6 +8,7 @@ import com.utn.interactiveconsortium.service.AdministratorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -20,6 +21,7 @@ public class AdministratorController {
     private final AdministratorService administratorService;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Page<AdministratorDto> getAdministrators(Pageable page) {
         return administratorService.getAdministrators(page);
     }

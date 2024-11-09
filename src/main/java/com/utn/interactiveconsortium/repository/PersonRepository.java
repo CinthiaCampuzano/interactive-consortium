@@ -1,5 +1,7 @@
 package com.utn.interactiveconsortium.repository;
 
+import java.util.Optional;
+
 import com.utn.interactiveconsortium.entity.PersonEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,4 +25,6 @@ public interface PersonRepository extends JpaRepository<PersonEntity, Long> {
 
     boolean existsByDni(@Param("dni") String dni);
     boolean existsByMail(@Param("mail") String mail);
+
+    Optional<PersonEntity> findByMail(@Param("mail") String mail);
 }
