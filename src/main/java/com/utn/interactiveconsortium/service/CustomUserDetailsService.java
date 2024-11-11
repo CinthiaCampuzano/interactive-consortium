@@ -15,7 +15,7 @@ import com.utn.interactiveconsortium.repository.PersonRepository;
 public class CustomUserDetailsService implements UserDetailsService {
 
    @Autowired
-   private PersonRepository personRepository; // Tu repositorio de usuarios
+   private PersonRepository personRepository;
 
    @Override
    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

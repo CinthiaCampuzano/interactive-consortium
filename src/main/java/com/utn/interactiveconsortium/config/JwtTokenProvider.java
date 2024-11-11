@@ -13,6 +13,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class JwtTokenProvider {
 
@@ -29,10 +32,11 @@ public class JwtTokenProvider {
 
       // Generar clave segura de 512 bits con la clase Keys
       SecretKey secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());  // Esto genera una clave de 512 bits
+      log.info("cuando creo el token:" + secretKey + " " +  jwtSecret );
 
       return Jwts.builder()
                  .setSubject(userDetails.getUsername())
-                 .claim("roles", "ROLE_ADMIN")
+                 .claim("roles", "ADMIN")
                  .setIssuedAt(now)
                  .setExpiration(expiryDate)
                  .signWith(secretKey, SignatureAlgorithm.HS512)
@@ -52,10 +56,21 @@ public class JwtTokenProvider {
    public boolean validateToken(String authToken) {
       try {
          SecretKey secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());  // Usar la misma clave para verificar
+         log.info("cuando valido el token:" + secretKey + jwtSecret);
          Jwts.parser().setSigningKey(secretKey).parseClaimsJws(authToken);
          return true;
       } catch (JwtException | IllegalArgumentException ex) {
          return false;
       }
    }
+
+   public String getRoleFromJWT(String token) {
+      SecretKey secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+      Claims claims = Jwts.parser()
+                          .setSigningKey(secretKey)
+                          .parseClaimsJws(token)
+                          .getBody();
+      return claims.get("roles", String.class);  // Extrae el rol "ADMIN" del token
+   }
+
 }
