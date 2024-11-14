@@ -77,7 +77,7 @@ public class AmenityService {
 
         amenityToUpdateEntity.setName(amenityToUpdate.getName());
         amenityToUpdateEntity.setMaxBookings(amenityToUpdate.getMaxBookings());
-        amenityToUpdateEntity.setConsortium(consortium);
+
 
         amenityRepository.save(amenityToUpdateEntity);
     }

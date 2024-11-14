@@ -64,11 +64,12 @@ public class AdministratorService {
         administratorToUpdateEntity.setName(administratorToUpdate.getName());
         administratorToUpdateEntity.setLastName(administratorToUpdate.getLastName());
         administratorToUpdateEntity.setMail(administratorToUpdate.getMail());
+        administratorToUpdateEntity.setDni(administratorToUpdate.getDni());
 
         try {
             administratorRepository.save(administratorToUpdateEntity);
         } catch (DataIntegrityViolationException e) {
-            throw new EntityAlreadyExistsException("Ya existe este correo electronico para otro administrador");
+            throw new EntityAlreadyExistsException("Ya existe este correo electronico o DNI para otro administrador");
         }
     }
 

@@ -23,14 +23,18 @@ public class DepartmentService {
     private final PersonRepository personRepository;
     private final DepartmentMapper departmentMapper;
 
-    public Page<DepartmentDto> getDepartments(Pageable page){
-        return departmentMapper.toPage(departmentRepository.findAll(page));
+//    public Page<DepartmentDto> getDepartments(Pageable page){
+//        return departmentMapper.toPage(departmentRepository.findAll(page));
+//    }
+
+    public Page<DepartmentDto> getDepartmentsByConsortium(Long consortiumId, Pageable pageable) {
+        Page<DepartmentEntity> departmentEntities = departmentRepository.findByConsortium_ConsortiumId(consortiumId, pageable);
+        return departmentMapper.toPage(departmentEntities);
     }
 
-    public Page<DepartmentDto> getDepartment(String code, Pageable page){
-        Page<DepartmentEntity> departmentEntityPage = departmentRepository.findAdministratorsByFilters(code, page);
 
-        return departmentMapper.toPage(departmentEntityPage);
+    public Page<DepartmentDto> getDepartment(Long idConsortium, String code, String ownerNameOrLastName, String residentNameOrLastName, Pageable page) {
+        return departmentMapper.toPage(departmentRepository.findDepartmentByFilters(idConsortium, code, ownerNameOrLastName, residentNameOrLastName,  page));
     }
 
     public DepartmentDto createDepartment(DepartmentDto newDepartment) throws EntityAlreadyExistsException, EntityNotFoundException {
@@ -90,7 +94,6 @@ public class DepartmentService {
                 .orElseThrow(() -> new EntityNotFoundException("Residente no encontrado"));
 
         departmentToUpdateEntity.setCode(departmentToUpdate.getCode());
-        departmentToUpdateEntity.setConsortium(consortium);
         departmentToUpdateEntity.setPropietary(propietary);
         departmentToUpdateEntity.setResident(resident);
 

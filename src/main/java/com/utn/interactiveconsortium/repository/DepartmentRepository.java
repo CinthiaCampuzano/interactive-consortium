@@ -17,4 +17,21 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, Lo
     @Query("SELECT CASE WHEN COUNT(d) > 0 THEN true ELSE false END FROM DepartmentEntity d WHERE d.code = :code AND d.consortium.consortiumId = :consortiumId")
     boolean existsByCodeAndConsortiumId(@Param("code") String code, @Param("consortiumId") Long consortiumId);
 
+    @Query("SELECT d FROM DepartmentEntity d " +
+            "JOIN d.consortium c " +
+            "LEFT JOIN d.propietary p " +
+            "LEFT JOIN d.resident r " +
+            "WHERE c.consortiumId = :idConsortium " +
+            "AND (:code IS NULL OR d.code LIKE %:code%) " +
+            "AND (:ownerNameOrLastName IS NULL OR (p.name LIKE %:ownerNameOrLastName% OR p.lastName LIKE %:ownerNameOrLastName%)) " +
+            "AND (:residentNameOrLastName IS NULL OR (r.name LIKE %:residentNameOrLastName% OR r.lastName LIKE %:residentNameOrLastName%))")
+    Page<DepartmentEntity> findDepartmentByFilters(
+            @Param("idConsortium") Long idConsortium,
+            @Param("code") String code,
+            @Param("ownerNameOrLastName") String ownerNameOrLastName,
+            @Param("residentNameOrLastName") String residentNameOrLastName,
+            Pageable page);
+
+    Page<DepartmentEntity> findByConsortium_ConsortiumId(Long consortiumId, Pageable pageable);
+
 }

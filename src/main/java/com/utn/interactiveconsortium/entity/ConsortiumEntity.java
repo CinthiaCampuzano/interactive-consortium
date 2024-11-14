@@ -43,4 +43,7 @@ public class ConsortiumEntity {
     @OneToMany(mappedBy = "consortium", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AmenityEntity> amenities;
 
+    @OneToMany(mappedBy = "consortium", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostEntity> posts;
+
 }
