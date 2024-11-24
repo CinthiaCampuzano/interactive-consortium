@@ -22,10 +22,15 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ConsortiumService {
+
     private final ConsortiumRepository consortiumRepository;
+
     private final AdministratorRepository administratorRepository;
+
     private final PersonRepository personRepository;
+
     private final ConsortiumMapper consortiumMapper;
+
     private final PersonMapper personMapper;
 
     public Page<ConsortiumDto> getConsortiums(Pageable page){
@@ -121,8 +126,7 @@ public class ConsortiumService {
     }
 
     public void deletePersonFromConsortium(Long idConsortium, Long idPerson) throws EntityNotFoundException {
-        ConsortiumEntity consortium = consortiumRepository.findById(idConsortium)
-                .orElseThrow(() -> new EntityNotFoundException("No se encontró el consorcio"));
+        ConsortiumEntity consortium = findConsortiumById(idConsortium);
         PersonEntity person = personRepository.findById(idPerson)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró la persona"));
 
@@ -132,4 +136,10 @@ public class ConsortiumService {
 
         consortiumRepository.save(consortium);
     }
+
+    public ConsortiumEntity findConsortiumById(Long consortiumId) throws EntityNotFoundException {
+        return consortiumRepository.findById(consortiumId)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el consorcio"));
+    }
+
 }
