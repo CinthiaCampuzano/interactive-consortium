@@ -139,4 +139,10 @@ public class ConsortiumService {
 
         consortiumRepository.save(consortium);
     }
+
+    public ConsortiumEntity findConsortiumById(Long consortiumId) throws EntityNotFoundException {
+        return consortiumRepository.findById(consortiumId)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el consorcio"));
+    }
+
 }
