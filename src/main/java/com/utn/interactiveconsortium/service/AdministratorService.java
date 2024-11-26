@@ -20,7 +20,10 @@ import org.springframework.stereotype.Service;
 public class AdministratorService {
 
     private final AdministratorRepository administratorRepository;
+
     private final AdministratorMapper administratorMapper;
+
+    private final AppUserDetailsService appUserDetailsService;
 
     public Page<AdministratorDto> getAdministrators(Pageable page){
         return administratorMapper.toPage(administratorRepository.findAll(page));
@@ -46,6 +49,8 @@ public class AdministratorService {
         AdministratorEntity newAdministratorEntity = administratorMapper.convertDtoToEntity(newAdministrator);
 
         administratorRepository.save(newAdministratorEntity);
+
+        appUserDetailsService.register(newAdministratorEntity);
 
         AdministratorDto newAdministratorDto = administratorMapper.convertEntityToDto(newAdministratorEntity);
 

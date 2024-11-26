@@ -8,6 +8,7 @@ import com.utn.interactiveconsortium.service.ConsortiumService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class ConsortiumController {
 
 //    El Superadmini puede ver todos los consorcios
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public Page<ConsortiumDto> getConsortiums(Pageable page) {
         return consortiumService.getConsortiums(page);
     }

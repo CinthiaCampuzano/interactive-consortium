@@ -1,24 +1,31 @@
 package com.utn.interactiveconsortium.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@RequiredArgsConstructor
 @Configuration
+//@EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    private final AuthenticationProvider authenticationProvider;
 
     //The example below shows the configuration that is equivalent to the default one:
     @Bean
@@ -26,33 +33,17 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(matcherRegistry -> matcherRegistry
-                        .requestMatchers("/administrators/**").permitAll()
+//                        .requestMatchers("/administrators/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "appUser/**").permitAll()
                         .anyRequest().authenticated() // 1
                 )
-                .formLogin(Customizer.withDefaults())  // 2
+//                .formLogin(Customizer.withDefaults())  // 2
                 .httpBasic(Customizer.withDefaults())  // 3
+                .sessionManagement(sessionManager ->
+                        sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user1 = User.withUsername("user1")
-                .password(this.passwordEncoder().encode("pass1"))
-                .roles()
-                .build();
-        UserDetails user2 = User
-                .withDefaultPasswordEncoder()
-                .username("user2")
-                .password("pass2")
-                .roles()
-                .build();
-
-        return new InMemoryUserDetailsManager(user1, user2);
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
 }
