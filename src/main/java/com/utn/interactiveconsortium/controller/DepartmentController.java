@@ -8,6 +8,7 @@ import com.utn.interactiveconsortium.service.DepartmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,21 +17,17 @@ import java.util.List;
 @RequestMapping(value = "departments")
 @RequiredArgsConstructor
 public class DepartmentController {
+
     private final DepartmentService departmentService;
 
-//    @GetMapping
-//    public Page<DepartmentDto> getDepartments(Pageable page) {
-//        return departmentService.getDepartments(page);
-//    }
-
-//    El administrador puede obtener todos los departamentos de un consorcio
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public Page<DepartmentDto> getDepartmentsByConsortium(@RequestParam Long consortiumId, Pageable page) {
         return departmentService.getDepartmentsByConsortium(consortiumId, page);
     }
 
-//    El administrador puede obtener todos los departamentos de un consorcio por filtro
     @GetMapping(value = "filterBy")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public Page<DepartmentDto> getDepartment(
             @RequestParam(required = false) Long idConsortium,
             @RequestParam(required = false) String code,
@@ -40,26 +37,24 @@ public class DepartmentController {
         return departmentService.getDepartment(idConsortium, code, ownerNameOrLastName, residentNameOrLastName, page);
     }
 
-//    El administrador puede crear un departamento
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public DepartmentDto createDepartment(@RequestBody DepartmentDto newDepartment) throws EntityAlreadyExistsException, EntityNotFoundException {
         return departmentService.createDepartment(newDepartment);
 
     }
 
-//    El administrador puede actualizar un departamento
     @PutMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public void updateDepartment(@RequestBody DepartmentDto departmentToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
         departmentService.updateDepartment(departmentToUpdate);
     }
 
-
-//    El administrador puede eliminar un departamento
     @DeleteMapping(value = "{idDepartment}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public void deleteDepartment(@PathVariable Long idDepartment) throws EntityNotFoundException {
         departmentService.deleteDepartment(idDepartment);
 
     }
-
 
 }

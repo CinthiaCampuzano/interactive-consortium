@@ -22,10 +22,17 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ConsortiumService {
+
+    private final LoggedUserService loggedUserService;
+
     private final ConsortiumRepository consortiumRepository;
+
     private final AdministratorRepository administratorRepository;
+
     private final PersonRepository personRepository;
+
     private final ConsortiumMapper consortiumMapper;
+
     private final PersonMapper personMapper;
 
     public Page<ConsortiumDto> getConsortiums(Pageable page){
@@ -34,13 +41,13 @@ public class ConsortiumService {
 
     public Page<ConsortiumDto> getConsortium(String name, String city, String province, String adminName, Pageable page){
         Page<ConsortiumEntity> consortiumEntityPage = consortiumRepository.findAdministratorsByFilters(name,city, province,adminName, page);
-
         return consortiumMapper.toPage(consortiumEntityPage);
     }
 
     public Page<ConsortiumDto> getConsortiumByAdministrator(Long idAdministrator, Pageable page){
-        Page<ConsortiumEntity> consortiumEntityPage = consortiumRepository.findByAdministrator_AdministratorId(idAdministrator, page);
-
+        List<Long> consortiumIds = loggedUserService.getAssociatedConsortiumIds();
+        Page<ConsortiumEntity> consortiumEntityPage = consortiumRepository
+                .findAllAssociatedConsortiums(idAdministrator, consortiumIds, page);
         return consortiumMapper.toPage(consortiumEntityPage);
     }
 

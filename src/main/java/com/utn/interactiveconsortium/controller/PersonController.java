@@ -6,6 +6,7 @@ import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.service.PersonService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,16 +17,19 @@ import java.util.List;
 @RequestMapping(value = "persons")
 @RequiredArgsConstructor
 public class PersonController {
+
     private final PersonService personService;
 
-// Administrador puede obtener todas las personas de un consorcio- Modificar este endpoint para que reciba el id del consorcio
+    //TODO Administrador puede obtener todas las personas de un consorcio- Modificar este endpoint para que reciba el id del consorcio
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public Page<PersonDto> getPersons(Pageable page) {
         return personService.getPersons(page);
     }
 
-//    Modificar este endpoint para que reciba el id del consorcio
+    //TODO Modificar este endpoint para que reciba el id del consorcio
     @GetMapping(value = "filtersBy")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public Page<PersonDto> getPerson(@RequestParam(required = false) String name,
                                                @RequestParam(required = false) String lastName,
                                                @RequestParam(required = false) String mail,
@@ -34,39 +38,40 @@ public class PersonController {
         return personService.getPerson(name, lastName, mail, dni, page);
     }
 
-//    Administrador obtiene una persona por su dni
     @GetMapping (value = "filterByDni")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public PersonDto getPersonByDni(@RequestParam(required = false) String dni) throws EntityNotFoundException {
         return personService.getPersonByDni(dni);
     }
 
-//    Administrador obtiene una lista de Propietarios de un consorcio
     @GetMapping("/consortium/{consortiumId}/owners")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public List<PersonDto> getOwnersByConsortium(@PathVariable Long consortiumId) throws EntityNotFoundException {
         return personService.getOwnersByConsortium(consortiumId);
     }
 
-//    Administrador obtiene una lista de Residentes de un consorcio
     @GetMapping("/consortium/{consortiumId}/residents")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public List<PersonDto> getResidentsByConsortium(@PathVariable Long consortiumId) throws EntityNotFoundException {
         return personService.getResidentsByConsortium(consortiumId);
     }
 
-//    Administrador crea una persona
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public PersonDto createPerson(@RequestBody PersonDto personDto) throws EntityAlreadyExistsException {
         return personService.createPerson(personDto);
     }
 
-//    Administrador actualiza una persona
-
+    //TODO esto tiene que tener un control
     @PutMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public void updatePerson(@RequestBody PersonDto personUpdateDto) throws EntityNotFoundException, EntityAlreadyExistsException {
         personService.updatePerson(personUpdateDto);
     }
 
-//    Administrador elimina una persona
+    //TODO esto tiene que tener un control
     @DeleteMapping(value = "{idPerson}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
     public void deletePerson(@PathVariable Long idPerson) throws EntityNotFoundException {
         personService.deletePerson(idPerson);
     }
