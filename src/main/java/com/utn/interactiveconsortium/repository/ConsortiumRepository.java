@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface ConsortiumRepository extends JpaRepository<ConsortiumEntity, Long> {
 
     @Query(value = "SELECT c FROM ConsortiumEntity c " +
@@ -25,13 +27,21 @@ public interface ConsortiumRepository extends JpaRepository<ConsortiumEntity, Lo
             "AND (:name IS NULL OR lower(c.name) LIKE lower(concat('%', :name,'%'))) " +
             "AND (:city IS NULL OR c.city = :city) " +
             "AND (:province IS NULL OR c.province = :province)")
-
     Page<ConsortiumEntity> findByAdministratorAndFilters(
             @Param("administratorId") Long administratorId,
             @Param("name") String name,
             @Param("city") String city,
             @Param("province") String province,
             Pageable pageable);
-    Page<ConsortiumEntity> findByAdministrator_AdministratorId(Long administratorId, Pageable pageable);
+
+    @Query("SELECT c " +
+            "FROM ConsortiumEntity c " +
+            "WHERE c.administrator.administratorId = :administratorId " +
+            "AND c.consortiumId IN :associatedConsortiumIds")
+    Page<ConsortiumEntity> findAllAssociatedConsortiums(
+            Long administratorId,
+            List<Long> associatedConsortiumIds,
+            Pageable pageable
+    );
 }
 

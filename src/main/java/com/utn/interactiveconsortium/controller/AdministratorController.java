@@ -21,14 +21,14 @@ public class AdministratorController {
 
     private final AdministratorService administratorService;
 
-//    SuperAdmin para poder ver todos los administradores
     @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_ROOT')")
     public Page<AdministratorDto> getAdministrators(Pageable page) {
         return administratorService.getAdministrators(page);
     }
 
-    //    SuperAdmin para poder ver todos los administradores por filtro
     @GetMapping(value = "filtersBy")
+    @PreAuthorize("hasAuthority('ROLE_ROOT')")
     public Page<AdministratorDto> getAdministrator( @RequestParam(required = false) String name,
                                                     @RequestParam(required = false) String lastName,
                                                     @RequestParam(required = false) String mail,
@@ -37,23 +37,20 @@ public class AdministratorController {
         return administratorService.getAdministrator(name, lastName, mail, dni, page);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_ROOT')")
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ROOT')")
     public AdministratorDto createAdministrator(@RequestBody AdministratorDto newAdministrator) throws EntityAlreadyExistsException {
         return administratorService.createAdministrator(newAdministrator);
-
-            //TODO agregar la creacion de appUser
     }
 
-    //    SuperAdmin para poder actualizar un administrador
-
     @PutMapping
+    @PreAuthorize("hasAuthority('ROLE_ROOT')")
     public void updateAdministrator(@RequestBody AdministratorDto administratorToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
         administratorService.updateAdministrator(administratorToUpdate);
     }
 
-    //    SuperAdmin para poder eliminar un administrador
     @DeleteMapping(value = "{idAdministrator}")
+    @PreAuthorize("hasAuthority('ROLE_ROOT')")
     public void deleteAdministrator(@PathVariable Long idAdministrator) throws EntityNotFoundException {
         administratorService.deleteAdministrator(idAdministrator);
 

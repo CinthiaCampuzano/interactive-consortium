@@ -16,8 +16,8 @@ import java.util.List;
 @RequestMapping(value = "Bookings")
 @RequiredArgsConstructor
 public class BookingController {
-    private final BookingService bookingService;
 
+    private final BookingService bookingService;
 
     @GetMapping (value = "ForAdmin")
     public Page<BookingDto> getAllBookingsForAdmin(@RequestParam Long idConsortium, Pageable page) {

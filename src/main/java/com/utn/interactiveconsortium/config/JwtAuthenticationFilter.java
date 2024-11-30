@@ -16,6 +16,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
@@ -40,6 +42,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                // Set consortiumIds in the SecurityContext
+//                List<Long> consortiumIds = jwtUtil.extractConsortiumIds(jwt);
+//                request.setAttribute("consortiumIds", consortiumIds);
+                List<Long> consortiumIds = jwtService.extractConsortiumIds(token);
+                List<Long> propietaryDepartmentIds = jwtService.extractPropietaryDepartmentsIds(token);
+                List<Long> residentDepartmentIds = jwtService.extractResidentDepartmentsIds(token);
+                Map<String, List<Long>> details = Map.of(
+                        JwtService.TOKEN_CONSORTIUM_IDS, consortiumIds,
+                        JwtService.TOKEN_PROPIETARY_DEPARTMENT_IDS, propietaryDepartmentIds,
+                        JwtService.TOKEN_RESIDENT_DEPARTMENT_IDS, residentDepartmentIds
+                );
+                authToken.setDetails(details);
+
             }
         }
 

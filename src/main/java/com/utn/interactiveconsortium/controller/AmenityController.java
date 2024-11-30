@@ -7,6 +7,7 @@ import com.utn.interactiveconsortium.service.AmenityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,34 +17,36 @@ public class AmenityController {
 
     private final AmenityService amenityService;
 
-//    El Administrador puede ver todos los amenities por consorcio
-//    El Residente puede ver todos los amenities por consorcio
+    private final String BASIC_ROLES = "hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN', 'ROLE_RESIDENT')";
+
+    private final String RESTRICTED_ROLES = "hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN', 'ROLE_RESIDENT')";
+
     @GetMapping
+    @PreAuthorize(BASIC_ROLES)
     public Page<AmenityDto> getAmenities(@RequestParam Long idConsortium, Pageable page) {
         return amenityService.getAmenities(idConsortium, page);
     }
 
-//    El Administrador puede ver todos los amenities por consorcio por filtro
-//    El Residente puede ver todos los amenities por consorcio por filtro
     @GetMapping (value = "filterBy")
+    @PreAuthorize(BASIC_ROLES)
     public Page<AmenityDto> getAmenity(@RequestParam Long idConsortium, @RequestParam(required = false) String name, Pageable page) {
         return amenityService.getAmenity(idConsortium, name, page);
     }
 
-//    El Administrador puede crear un amenity
     @PostMapping
+    @PreAuthorize(RESTRICTED_ROLES)
     public AmenityDto createAmenity(@RequestBody AmenityDto newAmenity) throws EntityAlreadyExistsException, EntityNotFoundException {
         return amenityService.createAmenity(newAmenity);
     }
 
-//    El Administrador puede actualizar un amenity
     @PutMapping
+    @PreAuthorize(RESTRICTED_ROLES)
     public void updateAmenity(@RequestBody AmenityDto amenityToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
         amenityService.updateAmenity(amenityToUpdate);
     }
 
-//    El Administrador puede eliminar un amenity
     @DeleteMapping(value = "{idAmenity}")
+    @PreAuthorize(RESTRICTED_ROLES)
     public void deleteAmenity(@PathVariable Long idAmenity) throws EntityNotFoundException {
         amenityService.deleteAmenity(idAmenity);
     }

@@ -33,28 +33,21 @@ public class AdministratorService {
         Page<AdministratorEntity> administratorEntityPage = administratorRepository.findAdministratorsByFilters(name, lastName, mail, dni, page);
 
         return administratorMapper.toPage(administratorEntityPage);
-
     }
 
     public AdministratorDto createAdministrator(AdministratorDto newAdministrator) throws EntityAlreadyExistsException {
-
-        if(administratorRepository.existsByDni(newAdministrator.getDni())){
+        if (administratorRepository.existsByDni(newAdministrator.getDni())) {
             throw new EntityAlreadyExistsException("Ya existe un administrador con ese dni");
         }
-
-        if(administratorRepository.existsByMail(newAdministrator.getMail())){
+        if (administratorRepository.existsByMail(newAdministrator.getMail())) {
             throw new EntityAlreadyExistsException("Ya existe un administrador con ese mail");
         }
 
         AdministratorEntity newAdministratorEntity = administratorMapper.convertDtoToEntity(newAdministrator);
-
         administratorRepository.save(newAdministratorEntity);
-
         appUserDetailsService.register(newAdministratorEntity);
 
-        AdministratorDto newAdministratorDto = administratorMapper.convertEntityToDto(newAdministratorEntity);
-
-        return newAdministratorDto;
+        return administratorMapper.convertEntityToDto(newAdministratorEntity);
     }
 
     public void updateAdministrator(AdministratorDto administratorToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
@@ -78,13 +71,14 @@ public class AdministratorService {
         }
     }
 
-    public void deleteAdministrator(Long idAdministrator) throws EntityNotFoundException{
-            boolean administratorExists = administratorRepository.existsById(idAdministrator);
+    public void deleteAdministrator(Long idAdministrator) throws EntityNotFoundException {
+        boolean administratorExists = administratorRepository.existsById(idAdministrator);
 
-            if(!administratorExists) {
-                throw new EntityNotFoundException("No se encontro el administrador");
-            }
-            administratorRepository.deleteById(idAdministrator);
+        if (!administratorExists) {
+            throw new EntityNotFoundException("No se encontro el administrador");
+        }
+
+        administratorRepository.deleteById(idAdministrator);
     }
 
 }

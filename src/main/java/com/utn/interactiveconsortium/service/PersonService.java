@@ -43,7 +43,7 @@ public class PersonService {
 
     public List<PersonDto> getOwnersByConsortium(Long consortiumId) throws EntityNotFoundException {
         consortiumRepository.findById(consortiumId)
-                .orElseThrow(() -> new EntityNotFoundException("No se encontro el consorcio"));
+                            .orElseThrow(() -> new EntityNotFoundException("No se encontro el consorcio"));
 
         List<PersonEntity> owners = personRepository.findOwnersByConsortiumId(consortiumId);
         return owners.stream()

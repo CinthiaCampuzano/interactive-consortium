@@ -17,15 +17,11 @@ public class AppUserController {
 
     private final AppUserDetailsService userDetailsService;
 
-    @PostMapping(path = "/register")
-    public String register(@RequestBody AppUserDto request) {
-        userDetailsService.register(request);
-        return "User registered successfully!!";
-    }
-
     @PostMapping(path = "/login")
     public ResponseEntity<AuthResponseDto> login(@RequestBody AppUserDto request) {
         return ResponseEntity.ok(userDetailsService.login(request));
     }
+
+    //TODO reset password
 
 }
