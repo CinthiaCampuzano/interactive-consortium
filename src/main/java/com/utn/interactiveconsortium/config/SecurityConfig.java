@@ -33,9 +33,9 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(matcherRegistry -> matcherRegistry
-//                        .requestMatchers("/administrators/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "appUser/**").permitAll()
-                        .anyRequest().authenticated() // 1
+//                        .requestMatchers("/administrators").permitAll()
+//                        .requestMatchers(HttpMethod.POST, "appUser/**").permitAll()
+                        .anyRequest().permitAll() // 1
                 )
 //                .formLogin(Customizer.withDefaults())  // 2
                 .httpBasic(Customizer.withDefaults())  // 3

@@ -4,10 +4,13 @@ import com.utn.interactiveconsortium.config.MinioConfig;
 import com.utn.interactiveconsortium.dto.MaintenanceFeeDto;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.MaintenanceFeeEntity;
+import com.utn.interactiveconsortium.entity.MaintenanceFeePaymentEntity;
+import com.utn.interactiveconsortium.enums.EPaymentStatus;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.exception.InvalidMaintenanceFeePeriodException;
 import com.utn.interactiveconsortium.mapper.MaintenanceFeeMapper;
+import com.utn.interactiveconsortium.repository.MaintenanceFeePaymentRepository;
 import com.utn.interactiveconsortium.repository.MaintenanceFeeRepository;
 import com.utn.interactiveconsortium.util.EmailService;
 import com.utn.interactiveconsortium.util.MinioUtils;
@@ -35,6 +38,8 @@ public class MaintenanceFeeService {
 
     private final MaintenanceFeeRepository maintenanceFeeRepository;
 
+    private final MaintenanceFeePaymentRepository maintenanceFeePaymentRepository;
+
     private final ConsortiumService consortiumService;
 
     private final MaintenanceFeeMapper maintenanceFeeMapper;
@@ -61,6 +66,7 @@ public class MaintenanceFeeService {
         String fileName = generateFileName(consortium, period, file);
         String filePath = getFilePathFor(consortium, period, fileName);
         minioUtils.uploadFile(minioConfig.getBucketName(), file, filePath, file.getContentType());
+
         MaintenanceFeeEntity newMaintenanceFeeEntity = MaintenanceFeeEntity.builder()
                 .period(period)
                 .consortium(consortium)
@@ -68,6 +74,18 @@ public class MaintenanceFeeService {
                 .uploadDate(LocalDateTime.now())
                 .build();
         maintenanceFeeRepository.save(newMaintenanceFeeEntity);
+
+        List<MaintenanceFeePaymentEntity> maintenanceFeePayments = new ArrayList<>();
+        consortium.getDepartments().forEach(department -> {
+            maintenanceFeePayments.add(MaintenanceFeePaymentEntity.builder()
+                    .department(department)
+                    .status(EPaymentStatus.PENDING)
+                    .maintenanceFee(newMaintenanceFeeEntity)
+                    .paymentDate(null)
+                    .amount(null)
+                    .build());
+        });
+        maintenanceFeePaymentRepository.saveAll(maintenanceFeePayments);
 
         InputStream inputStream = minioUtils.getObject(minioConfig.getBucketName(), filePath);
         Set<String> mails = new HashSet<>();

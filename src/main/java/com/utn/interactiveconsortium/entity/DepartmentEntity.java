@@ -3,6 +3,8 @@ package com.utn.interactiveconsortium.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Table(name = "department")
 @Entity
 @Setter
@@ -29,4 +31,8 @@ public class DepartmentEntity {
     @ManyToOne
     @JoinColumn(name = "resident_id")
     private PersonEntity resident;
+
+    @OneToMany(mappedBy = "department")
+    private List<MaintenanceFeePaymentEntity> maintenanceFeePayments;
+
 }

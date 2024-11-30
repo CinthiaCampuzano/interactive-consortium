@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Table(name = "maintenance_fee")
 @Entity
@@ -28,5 +29,8 @@ public class MaintenanceFeeEntity {
     private String fileName;
 
     private LocalDateTime uploadDate;
+
+    @OneToMany(mappedBy = "maintenanceFee")
+    private List<MaintenanceFeePaymentEntity> maintenanceFeePayments;
 
 }
