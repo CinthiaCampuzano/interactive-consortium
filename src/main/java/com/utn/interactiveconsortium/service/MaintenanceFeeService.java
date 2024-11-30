@@ -26,8 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -71,8 +70,12 @@ public class MaintenanceFeeService {
         maintenanceFeeRepository.save(newMaintenanceFeeEntity);
 
         InputStream inputStream = minioUtils.getObject(minioConfig.getBucketName(), filePath);
-        //TODO replace this with the real mails
-        List<String> mails = List.of("cinthialujancampuzano@gmail.com");
+        Set<String> mails = new HashSet<>();
+        consortium.getDepartments().forEach(department -> {
+            mails.add(department.getPropietary().getMail());
+            mails.add(department.getResident().getMail());
+        });
+
         sendMaintenanceFeeMailWithAttachment(mails, newMaintenanceFeeEntity.getConsortium().getName(), newMaintenanceFeeEntity.getPeriod(), fileName, inputStream);
 
         return maintenanceFeeMapper.convertEntityToDto(newMaintenanceFeeEntity);
@@ -133,7 +136,7 @@ public class MaintenanceFeeService {
         }
     }
 
-    public void sendMaintenanceFeeMailWithAttachment(List<String> mails, String consortiumName, LocalDate period, String fileName, InputStream file) throws MessagingException, IOException {
+    public void sendMaintenanceFeeMailWithAttachment(Set<String> mails, String consortiumName, LocalDate period, String fileName, InputStream file) throws MessagingException, IOException {
         String subject = String.format(MAINTENANCE_FEE_SUBJECT, getMonthName(period) + " " + period.getYear(), consortiumName);
         emailService.sendMessageWithAttachment(mails.toArray(new String[0]), subject, "esto es un texto de prueba", fileName, file);
     }
