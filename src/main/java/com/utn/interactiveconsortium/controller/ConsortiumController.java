@@ -36,21 +36,20 @@ public class ConsortiumController {
     }
 
 
-    @GetMapping(value = "{idAdministrator}/filter")
-    @PreAuthorize("hasAnyAuthority('ROLE_ROOT')")
-    public Page<ConsortiumDto> getConsortiumByAdministratorAndFilters(@PathVariable Long idAdministrator,
-                                                                      @RequestParam(required = false) String name,
+    @GetMapping(value = "/filter")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public Page<ConsortiumDto> getConsortiumByAdministratorAndFilters(@RequestParam(required = false) String name,
                                                                       @RequestParam(required = false) String city,
                                                                       @RequestParam(required = false) String province,
                                                                       Pageable page) {
-        return consortiumService.getConsortiumByAdministratorAndFilters(idAdministrator, name, city, province, page);
+        return consortiumService.getConsortiumByAdministratorAndFilters(name, city, province, page);
     }
 
-    @GetMapping(value = "{idAdministrator}")
+    @GetMapping("/administrator")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
-    public Page<ConsortiumDto> getConsortiumByAdministrator(@PathVariable Long idAdministrator, Pageable page) {
+    public Page<ConsortiumDto> getConsortiumByAdministrator(Pageable page) {
         //TODO aca sacar directamente del usuario loggeado
-        return consortiumService.getConsortiumByAdministrator(idAdministrator, page);
+        return consortiumService.getConsortiumByAdministrator(page);
     }
 
     @GetMapping("/consortium/{idConsortium}")

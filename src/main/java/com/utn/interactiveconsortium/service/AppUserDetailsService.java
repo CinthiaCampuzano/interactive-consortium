@@ -7,6 +7,7 @@ import com.utn.interactiveconsortium.dto.AuthResponseDto;
 import com.utn.interactiveconsortium.entity.AdministratorEntity;
 import com.utn.interactiveconsortium.entity.AppUser;
 import com.utn.interactiveconsortium.enums.ERole;
+import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.repository.AppUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,8 +17,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -61,6 +60,11 @@ public class AppUserDetailsService implements UserDetailsService {
         repository.save(user);
     }
 
+    public AppUser findByUsername(String username) throws EntityNotFoundException {
+        return repository.findByUsername(username)
+                                    .orElseThrow(() -> new EntityNotFoundException("No existe ese usuario"));
+    }
+
     public AuthResponseDto login(AppUserDto request) {
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
@@ -69,5 +73,13 @@ public class AppUserDetailsService implements UserDetailsService {
         return AuthResponseDto.builder()
                 .token(jwtService.getToken(user))
                 .build();
+    }
+
+    public void updateAppUser(AppUser appUser) {
+        repository.save(appUser);
+    }
+
+    public void deleteByUsername(String mail) {
+        repository.deleteByUsername(mail);
     }
 }

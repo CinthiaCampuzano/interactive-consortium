@@ -2,10 +2,12 @@ package com.utn.interactiveconsortium.service;
 
 import com.utn.interactiveconsortium.dto.AdministratorDto;
 import com.utn.interactiveconsortium.entity.AdministratorEntity;
+import com.utn.interactiveconsortium.entity.AppUser;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.AdministratorMapper;
 import com.utn.interactiveconsortium.repository.AdministratorRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -50,35 +52,38 @@ public class AdministratorService {
         return administratorMapper.convertEntityToDto(newAdministratorEntity);
     }
 
+    @Transactional(rollbackOn = Exception.class)
     public void updateAdministrator(AdministratorDto administratorToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
         boolean administratorExists = administratorRepository.existsById(administratorToUpdate.getAdministratorId());
-
         if (!administratorExists) {
             throw new EntityNotFoundException("No existe ese administrador");
         }
 
         AdministratorEntity administratorToUpdateEntity = administratorRepository.findById(administratorToUpdate.getAdministratorId()).get();
+        AppUser appUser = appUserDetailsService.findByUsername(administratorToUpdateEntity.getMail());
 
         administratorToUpdateEntity.setName(administratorToUpdate.getName());
         administratorToUpdateEntity.setLastName(administratorToUpdate.getLastName());
         administratorToUpdateEntity.setMail(administratorToUpdate.getMail());
         administratorToUpdateEntity.setDni(administratorToUpdate.getDni());
 
+        appUser.setUsername(administratorToUpdateEntity.getMail());
+
         try {
             administratorRepository.save(administratorToUpdateEntity);
+            appUserDetailsService.updateAppUser(appUser);
         } catch (DataIntegrityViolationException e) {
             throw new EntityAlreadyExistsException("Ya existe este correo electronico o DNI para otro administrador");
         }
     }
 
+    @Transactional(rollbackOn = Exception.class)
     public void deleteAdministrator(Long idAdministrator) throws EntityNotFoundException {
-        boolean administratorExists = administratorRepository.existsById(idAdministrator);
-
-        if (!administratorExists) {
-            throw new EntityNotFoundException("No se encontro el administrador");
-        }
+        AdministratorEntity administrator = administratorRepository.findById(idAdministrator)
+                .orElseThrow(() -> new EntityNotFoundException("No existe ese administrador"));
 
         administratorRepository.deleteById(idAdministrator);
+        appUserDetailsService.deleteByUsername(administrator.getMail());
     }
 
 }
