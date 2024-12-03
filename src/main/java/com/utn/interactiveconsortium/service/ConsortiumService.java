@@ -44,15 +44,17 @@ public class ConsortiumService {
         return consortiumMapper.toPage(consortiumEntityPage);
     }
 
-    public Page<ConsortiumDto> getConsortiumByAdministrator(Long idAdministrator, Pageable page){
+    public Page<ConsortiumDto> getConsortiumByAdministrator(Pageable page){
         List<Long> consortiumIds = loggedUserService.getAssociatedConsortiumIds();
+        AdministratorEntity administrator = loggedUserService.getLoggedAdministrator();
         Page<ConsortiumEntity> consortiumEntityPage = consortiumRepository
-                .findAllAssociatedConsortiums(idAdministrator, consortiumIds, page);
+                .findAllAssociatedConsortiums(administrator.getAdministratorId(), consortiumIds, page);
         return consortiumMapper.toPage(consortiumEntityPage);
     }
 
-    public Page<ConsortiumDto> getConsortiumByAdministratorAndFilters(Long idAdministrator, String name, String city, String province, Pageable page){
-        Page<ConsortiumEntity> consortiumEntityPage = consortiumRepository.findByAdministratorAndFilters(idAdministrator, name,city, province, page);
+    public Page<ConsortiumDto> getConsortiumByAdministratorAndFilters(String name, String city, String province, Pageable page){
+        Long administratorId = loggedUserService.getLoggedAdministrator().getAdministratorId();
+        Page<ConsortiumEntity> consortiumEntityPage = consortiumRepository.findByAdministratorAndFilters(administratorId, name,city, province, page);
 
         return consortiumMapper.toPage(consortiumEntityPage);
     }
@@ -139,4 +141,10 @@ public class ConsortiumService {
 
         consortiumRepository.save(consortium);
     }
+
+    public ConsortiumEntity findConsortiumById(Long consortiumId) throws EntityNotFoundException {
+        return consortiumRepository.findById(consortiumId)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el consorcio"));
+    }
+
 }

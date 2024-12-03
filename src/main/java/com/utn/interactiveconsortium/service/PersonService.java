@@ -1,20 +1,19 @@
 package com.utn.interactiveconsortium.service;
 
 import com.utn.interactiveconsortium.dto.PersonDto;
-import com.utn.interactiveconsortium.entity.ConsortiumEntity;
+import com.utn.interactiveconsortium.entity.AppUser;
 import com.utn.interactiveconsortium.entity.PersonEntity;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.PersonMapper;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.repository.PersonRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,9 +21,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PersonService {
+
     private final PersonRepository personRepository;
+
     private final ConsortiumRepository consortiumRepository;
+
     private final PersonMapper personMapper;
+
+    private final AppUserDetailsService appUserDetailsService;
 
     public Page<PersonDto> getPersons(Pageable page) {
         return personMapper.toPage(personRepository.findAll(page));
@@ -80,14 +84,12 @@ public class PersonService {
         return newPersonDto;
     }
 
+    @Transactional(rollbackOn = Exception.class)
     public void updatePerson(PersonDto personToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
-        boolean personExists = personRepository.existsById(personToUpdate.getPersonId());
+        PersonEntity personToUpdateEntity = personRepository.findById(personToUpdate.getPersonId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro el persona"));
 
-        if (!personExists) {
-            throw new EntityNotFoundException("No existe esa persona");
-        }
-
-        PersonEntity personToUpdateEntity = personRepository.findById(personToUpdate.getPersonId()).get();
+        AppUser appUser = appUserDetailsService.findByUsername(personToUpdate.getMail());
 
         personToUpdateEntity.setName(personToUpdate.getName());
         personToUpdateEntity.setLastName(personToUpdate.getLastName());
@@ -95,8 +97,11 @@ public class PersonService {
         personToUpdateEntity.setDni(personToUpdate.getDni());
         personToUpdateEntity.setPhoneNumber(personToUpdate.getPhoneNumber());
 
+        appUser.setUsername(personToUpdate.getMail());
+
         try {
             personRepository.save(personToUpdateEntity);
+            appUserDetailsService.updateAppUser(appUser);
         } catch (DataIntegrityViolationException e) {
             throw new EntityAlreadyExistsException("Ya existe este correo electronico o Dni para otra persona");
         }
