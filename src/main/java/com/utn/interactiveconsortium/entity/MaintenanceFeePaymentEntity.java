@@ -35,6 +35,8 @@ public class MaintenanceFeePaymentEntity {
 
     private LocalDateTime paymentDate;
 
+    private String fileName;
+
     private BigDecimal amount;
 
 }

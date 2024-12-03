@@ -5,6 +5,8 @@ import com.utn.interactiveconsortium.enums.EPaymentStatus;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.service.MaintenanceFeePaymentService;
 import com.utn.interactiveconsortium.util.CustomDateFormat;
+import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 
 @RequiredArgsConstructor
@@ -32,22 +35,29 @@ public class MaintenanceFeePaymentController {
         return maintenanceFeePaymentService.getMaintenanceFeePayments(consortiumId, period, page);
     }
 
-    //TODO agregar EP que permita descargar facturas
     @GetMapping("/{maintenanceFeePaymentId}/download")
-    public void downloadMaintenanceFeePayment(@PathVariable Long maintenanceFeePaymentId) {
-//        maintenanceFeePaymentService.downloadMaintenanceFeePayment(maintenanceFeePaymentId);
-        return;
+    @PreAuthorize("hasAnyAuthority('ROLE_PROPIETARY', 'ROLE_RESIDENT')")
+    public void downloadMaintenanceFeePayment(@PathVariable Long maintenanceFeePaymentId, HttpServletResponse response) throws EntityNotFoundException, IOException {
+        maintenanceFeePaymentService.downloadMaintenanceFeePayment(maintenanceFeePaymentId, response);
     }
 
-    //TODO agregar EP que permita ver las los pagos de expensas de realizados por una personsa (propetario o inquilino), dado un determinado consorcio
+    @GetMapping("/person")
+    @PreAuthorize("hasAnyAuthority('ROLE_PROPIETARY', 'ROLE_RESIDENT')")
+    public Page<MaintenanceFeePaymentDto> getMaintenanceFeePaymentsForPerson(
+            @PathVariable Long consortiumId,
+            @RequestParam @CustomDateFormat LocalDate period,
+            @RequestParam EPaymentStatus status,
+            Pageable page
+    ) {
+        return maintenanceFeePaymentService.getMaintenanceFeePaymentsForPerson(consortiumId, period, status, page);
+    }
 
-    //TODO agregar que sea con carga de archivo y que se envie por correo al que corresponda
     @PutMapping()
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public MaintenanceFeePaymentDto updateMaintenanceFeePayment(
             @RequestBody MaintenanceFeePaymentDto maintenanceFeePaymentDto,
             @RequestPart(value = "file", required = false) MultipartFile file
-    ) throws EntityNotFoundException {
-        return maintenanceFeePaymentService.updateMaintenanceFeePayment(maintenanceFeePaymentDto);
+    ) throws EntityNotFoundException, MessagingException, IOException {
+        return maintenanceFeePaymentService.updateMaintenanceFeePayment(maintenanceFeePaymentDto, file);
     }
 }

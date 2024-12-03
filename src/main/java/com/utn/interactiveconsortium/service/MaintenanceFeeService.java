@@ -100,7 +100,13 @@ public class MaintenanceFeeService {
     }
 
     private String generateFileName(ConsortiumEntity consortium, LocalDate period, MultipartFile file) {
-        return consortium.getName().replace(' ', '_') + "_" + period.getYear() + "_" + period.getMonthValue() + getFileExtension(file);
+        return "Expensas" +
+                consortium.getName().replace(' ', '_') +
+                "_" +
+                period.getYear() +
+                "_" +
+                period.getMonthValue() +
+                getFileExtension(file);
     }
 
     private String getFilePathFor(ConsortiumEntity consortium, LocalDate period, String fileName) {
@@ -156,7 +162,7 @@ public class MaintenanceFeeService {
 
     public void sendMaintenanceFeeMailWithAttachment(Set<String> mails, String consortiumName, LocalDate period, String fileName, InputStream file) throws MessagingException, IOException {
         String subject = String.format(MAINTENANCE_FEE_SUBJECT, getMonthName(period) + " " + period.getYear(), consortiumName);
-        emailService.sendMessageWithAttachment(mails.toArray(new String[0]), subject, "esto es un texto de prueba", fileName, file);
+        emailService.sendMessageWithAttachment(mails.toArray(new String[0]), subject, null, fileName, file);
     }
 
     private String getMonthName(LocalDate period) {

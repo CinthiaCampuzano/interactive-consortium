@@ -40,7 +40,9 @@ public class EmailService {
         helper.setFrom(fromMail);
         helper.setTo(to);
         helper.setSubject(subject);
-        helper.setText(text);
+        if (text != null) {
+            helper.setText(text);
+        }
 
         InputStreamSource source = new ByteArrayResource(file.readAllBytes());
         helper.addAttachment(fileName, source);
