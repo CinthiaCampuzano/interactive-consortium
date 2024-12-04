@@ -30,5 +30,9 @@ public class RestResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
+    @ExceptionHandler(value = {IssueReportStatusException.class})
+    public ResponseEntity<Object> handleIssueReportStatusException(IssueReportStatusException ex) {
+        return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(ex.getMessage());
+    }
 
 }
