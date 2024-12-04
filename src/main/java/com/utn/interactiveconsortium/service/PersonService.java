@@ -65,6 +65,7 @@ public class PersonService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(rollbackOn = Exception.class)
     public PersonDto createPerson(PersonDto newPerson) throws EntityAlreadyExistsException {
 
         if (personRepository.existsByDni(newPerson.getDni())) {
@@ -78,6 +79,7 @@ public class PersonService {
         PersonEntity newPersonEntity = personMapper.convertDtoToEntity(newPerson);
 
         personRepository.save(newPersonEntity);
+        appUserDetailsService.register(newPersonEntity);
 
         PersonDto newPersonDto = personMapper.convertEntityToDto(newPersonEntity);
 

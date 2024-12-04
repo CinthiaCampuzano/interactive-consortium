@@ -6,6 +6,7 @@ import com.utn.interactiveconsortium.dto.AppUserDto;
 import com.utn.interactiveconsortium.dto.AuthResponseDto;
 import com.utn.interactiveconsortium.entity.AdministratorEntity;
 import com.utn.interactiveconsortium.entity.AppUser;
+import com.utn.interactiveconsortium.entity.PersonEntity;
 import com.utn.interactiveconsortium.enums.ERole;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.repository.AppUserRepository;
@@ -56,6 +57,16 @@ public class AppUserDetailsService implements UserDetailsService {
         user.setPassword(passwordEncoder.encode(administrator.getDni()));
         user.setAuthority(ERole.ROLE_ADMIN.name());
         user.setAdministrator(administrator);
+
+        repository.save(user);
+    }
+
+    public void register(PersonEntity person) {
+        var user = new AppUser();
+        user.setUsername(person.getMail());
+        user.setPassword(passwordEncoder.encode(person.getDni()));
+        user.setAuthority(ERole.ROLE_ADMIN.name());
+        user.setPerson(person);
 
         repository.save(user);
     }
