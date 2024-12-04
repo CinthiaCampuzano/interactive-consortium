@@ -65,6 +65,7 @@ public class PersonService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(rollbackOn = Exception.class)
     public PersonDto createPerson(PersonDto newPerson) throws EntityAlreadyExistsException {
 
         if (personRepository.existsByDni(newPerson.getDni())) {
@@ -78,6 +79,7 @@ public class PersonService {
         PersonEntity newPersonEntity = personMapper.convertDtoToEntity(newPerson);
 
         personRepository.save(newPersonEntity);
+        appUserDetailsService.register(newPersonEntity);
 
         PersonDto newPersonDto = personMapper.convertEntityToDto(newPersonEntity);
 
@@ -108,13 +110,12 @@ public class PersonService {
     }
 
     public void deletePerson(Long idPerson) throws EntityNotFoundException {
-        boolean personExists = personRepository.existsById(idPerson);
+        var person = personRepository.findById(idPerson)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro el persona"));
 
-        if (!personExists) {
-            throw new EntityNotFoundException("No existe esa persona");
-        }
+        personRepository.delete(person);
+        appUserDetailsService.deleteByUsername(person.getMail());
 
-        personRepository.deleteById(idPerson);
     }
 
 }
