@@ -110,13 +110,12 @@ public class PersonService {
     }
 
     public void deletePerson(Long idPerson) throws EntityNotFoundException {
-        boolean personExists = personRepository.existsById(idPerson);
+        var person = personRepository.findById(idPerson)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro el persona"));
 
-        if (!personExists) {
-            throw new EntityNotFoundException("No existe esa persona");
-        }
+        personRepository.delete(person);
+        appUserDetailsService.deleteByUsername(person.getMail());
 
-        personRepository.deleteById(idPerson);
     }
 
 }
