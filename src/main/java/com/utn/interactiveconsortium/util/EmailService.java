@@ -23,6 +23,8 @@ public class EmailService {
     @Autowired
     private JavaMailSender emailSender;
 
+    private static final String EMPTY_STRING = "";
+
     public void sendSimpleMessage(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("consorcio.interactivo.rca@gmail.com");
@@ -40,9 +42,7 @@ public class EmailService {
         helper.setFrom(fromMail);
         helper.setTo(to);
         helper.setSubject(subject);
-        if (text != null) {
-            helper.setText(text);
-        }
+        helper.setText(text != null ? text : EMPTY_STRING);
 
         InputStreamSource source = new ByteArrayResource(file.readAllBytes());
         helper.addAttachment(fileName, source);
