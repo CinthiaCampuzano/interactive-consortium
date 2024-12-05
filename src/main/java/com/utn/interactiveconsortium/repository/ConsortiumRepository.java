@@ -43,5 +43,16 @@ public interface ConsortiumRepository extends JpaRepository<ConsortiumEntity, Lo
             List<Long> associatedConsortiumIds,
             Pageable pageable
     );
+
+    @Query("SELECT DISTINCT c " +
+            "FROM ConsortiumEntity c " +
+            "INNER JOIN DepartmentEntity d ON d.consortium.consortiumId = c.consortiumId " +
+            "WHERE (d.propietary = :personId OR d.resident = :persoId) " +
+            "AND c.consortiumId IN :associatedConsortiumIds")
+    Page<ConsortiumEntity> findAllAssociatedConsortiumsByPerson(
+            Long personId,
+            List<Long> associatedConsortiumIds,
+            Pageable pageable
+    );
 }
 

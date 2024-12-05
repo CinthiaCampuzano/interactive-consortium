@@ -2,6 +2,7 @@ package com.utn.interactiveconsortium.service;
 
 import com.utn.interactiveconsortium.adapter.AppUserAdapter;
 import com.utn.interactiveconsortium.entity.AdministratorEntity;
+import com.utn.interactiveconsortium.entity.PersonEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,11 @@ import java.util.Map;
 public class LoggedUserService {
 
     public AdministratorEntity getLoggedAdministrator() {
-        return  ((AppUserAdapter) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getAppUser().getAdministrator();
+        return ((AppUserAdapter) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getAppUser().getAdministrator();
+    }
+
+    public PersonEntity getLoggedPerson() {
+        return ((AppUserAdapter) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getAppUser().getPerson();
     }
 
     public List<Long> getAssociatedConsortiumIds() {

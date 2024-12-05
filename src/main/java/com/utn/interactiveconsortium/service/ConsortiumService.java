@@ -52,6 +52,14 @@ public class ConsortiumService {
         return consortiumMapper.toPage(consortiumEntityPage);
     }
 
+    public Page<ConsortiumDto> getConsortiumByPerson(Pageable page){
+        List<Long> consortiumIds = loggedUserService.getAssociatedConsortiumIds();
+        PersonEntity person = loggedUserService.getLoggedPerson();
+        Page<ConsortiumEntity> consortiumEntityPage = consortiumRepository
+                .findAllAssociatedConsortiumsByPerson(person.getPersonId(), consortiumIds, page);
+        return consortiumMapper.toPage(consortiumEntityPage);
+    }
+
     public Page<ConsortiumDto> getConsortiumByAdministratorAndFilters(String name, String city, String province, Pageable page){
         Long administratorId = loggedUserService.getLoggedAdministrator().getAdministratorId();
         Page<ConsortiumEntity> consortiumEntityPage = consortiumRepository.findByAdministratorAndFilters(administratorId, name,city, province, page);

@@ -48,8 +48,13 @@ public class ConsortiumController {
     @GetMapping("/administrator")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public Page<ConsortiumDto> getConsortiumByAdministrator(Pageable page) {
-        //TODO aca sacar directamente del usuario loggeado
         return consortiumService.getConsortiumByAdministrator(page);
+    }
+
+    @GetMapping("/person")
+    @PreAuthorize("hasAnyAuthority('ROLE_RESIDENT', 'ROLE_PROPRIETARY')")
+    public Page<ConsortiumDto> getConsortiumByPerson(Pageable page) {
+        return consortiumService.getConsortiumByPerson(page);
     }
 
     @GetMapping("/consortium/{idConsortium}")
