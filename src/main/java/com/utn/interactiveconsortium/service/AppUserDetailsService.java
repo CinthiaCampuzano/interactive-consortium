@@ -65,7 +65,8 @@ public class AppUserDetailsService implements UserDetailsService {
         var user = new AppUser();
         user.setUsername(person.getMail());
         user.setPassword(passwordEncoder.encode(person.getDni()));
-        user.setAuthority(ERole.ROLE_ADMIN.name());
+        //TODO revisar esto
+        user.setAuthority(ERole.ROLE_RESIDENT.name());
         user.setPerson(person);
 
         repository.save(user);
