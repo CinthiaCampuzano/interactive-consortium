@@ -28,15 +28,15 @@ public class MaintenanceFeePaymentController {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public Page<MaintenanceFeePaymentDto> getMaintenanceFeePayments(
             @PathVariable Long consortiumId,
-            @RequestParam @CustomDateFormat LocalDate period,
-            @RequestParam EPaymentStatus status,
+            @RequestParam(required = false) @CustomDateFormat LocalDate period,
+            @RequestParam(required = false) EPaymentStatus status,
             Pageable page
     ) {
-        return maintenanceFeePaymentService.getMaintenanceFeePayments(consortiumId, period, page);
+        return maintenanceFeePaymentService.getMaintenanceFeePayments(consortiumId, period, status, page);
     }
 
     @GetMapping("/{maintenanceFeePaymentId}/download")
-    @PreAuthorize("hasAnyAuthority('ROLE_PROPIETARY', 'ROLE_RESIDENT')")
+    @PreAuthorize("hasAnyAuthority('ROLE_PROPIETARY', 'ROLE_RESIDENT', 'ROLE_ADMIN')")
     public void downloadMaintenanceFeePayment(@PathVariable Long maintenanceFeePaymentId, HttpServletResponse response) throws EntityNotFoundException, IOException {
         maintenanceFeePaymentService.downloadMaintenanceFeePayment(maintenanceFeePaymentId, response);
     }
@@ -52,11 +52,11 @@ public class MaintenanceFeePaymentController {
         return maintenanceFeePaymentService.getMaintenanceFeePaymentsForPerson(consortiumId, period, status, page);
     }
 
-    @PutMapping()
+    @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public MaintenanceFeePaymentDto updateMaintenanceFeePayment(
-            @RequestBody MaintenanceFeePaymentDto maintenanceFeePaymentDto,
-            @RequestPart(value = "file", required = false) MultipartFile file
+            @RequestPart(value = "maintenanceFeePaymentDto") MaintenanceFeePaymentDto maintenanceFeePaymentDto,
+            @RequestPart(value = "file") MultipartFile file
     ) throws EntityNotFoundException, MessagingException, IOException {
         return maintenanceFeePaymentService.updateMaintenanceFeePayment(maintenanceFeePaymentDto, file);
     }

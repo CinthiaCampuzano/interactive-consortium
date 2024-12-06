@@ -22,7 +22,9 @@ public class LoggedUserService {
 
     public List<Long> getAssociatedConsortiumIds() {
         Map<String, Object> details = (Map<String, Object>) SecurityContextHolder.getContext().getAuthentication().getDetails();
-        return (List<Long>) details.get(JwtService.TOKEN_CONSORTIUM_IDS);
+        return ((List) details.get(JwtService.TOKEN_CONSORTIUM_IDS))
+                .stream().map(v -> ((Integer)v).longValue())
+                .toList();
     }
 
     public List<Long> getAssociatedPropietaryDepartmentIds() {

@@ -51,9 +51,9 @@ public class MaintenanceFeePaymentService {
 
     private static final String MAINTENANCE_FEE_PAYMENT_SUBJECT = "Recibo de expensas del mes de %s - Consoricio %s";
 
-    public Page<MaintenanceFeePaymentDto> getMaintenanceFeePayments(Long consortiumId, LocalDate period, Pageable page) {
+    public Page<MaintenanceFeePaymentDto> getMaintenanceFeePayments(Long consortiumId, LocalDate period, EPaymentStatus status, Pageable page) {
         List<Long> associatedConsortiumIds = loggedUserService.getAssociatedConsortiumIds();
-        return mapper.toPage(maintenanceFeePaymentRepository.getMaintenanceFeePayments(consortiumId, period, associatedConsortiumIds, page));
+        return mapper.toPage(maintenanceFeePaymentRepository.getMaintenanceFeePayments(consortiumId, period, status, associatedConsortiumIds, page));
     }
 
     @Transactional(rollbackOn = Exception.class)
@@ -70,7 +70,7 @@ public class MaintenanceFeePaymentService {
         MaintenanceFeePaymentEntity maintenanceFeePayment = maintenanceFeePaymentRepository.findById(maintenanceFeePaymentDto.getMaintenanceFeePaymentId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontro el pago de expensas"));
 
-        maintenanceFeePayment.setStatus(maintenanceFeePaymentDto.getStatus());
+        maintenanceFeePayment.setStatus(EPaymentStatus.PAID);
         maintenanceFeePayment.setAmount(maintenanceFeePaymentDto.getAmount());
         maintenanceFeePayment.setPaymentDate(LocalDateTime.now());
 
