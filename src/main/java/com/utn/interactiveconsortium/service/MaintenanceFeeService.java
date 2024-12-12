@@ -134,9 +134,7 @@ public class MaintenanceFeeService {
     public void deleteByMaintenanceFeeId(Long maintenanceFeeId) throws EntityNotFoundException, InvalidMaintenanceFeePeriodException {
         MaintenanceFeeEntity maintenanceFee = maintenanceFeeRepository.findById(maintenanceFeeId)
                 .orElseThrow(() -> new EntityNotFoundException("Maintenance fee not found"));
-        if (LocalDate.now().withDayOfMonth(1).minusMonths(1).isEqual(maintenanceFee.getPeriod())) {
-            throw new InvalidMaintenanceFeePeriodException("Maintenance fee period is not valid");
-        }
+
         maintenanceFeeRepository.delete(maintenanceFee);
     }
 

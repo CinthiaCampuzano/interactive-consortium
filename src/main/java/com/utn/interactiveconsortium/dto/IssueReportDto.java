@@ -15,7 +15,7 @@ public class IssueReportDto implements Serializable {
 
     private String subject;
 
-    private String message;
+    private String issue;
 
     private String response;
 

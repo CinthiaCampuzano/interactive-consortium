@@ -30,7 +30,7 @@ public class MaintenanceFeeEntity {
 
     private LocalDateTime uploadDate;
 
-    @OneToMany(mappedBy = "maintenanceFee")
+    @OneToMany(mappedBy = "maintenanceFee", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MaintenanceFeePaymentEntity> maintenanceFeePayments;
 
 }

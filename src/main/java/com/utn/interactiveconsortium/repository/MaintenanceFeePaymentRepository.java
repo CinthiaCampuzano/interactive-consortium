@@ -1,6 +1,7 @@
 package com.utn.interactiveconsortium.repository;
 
 import com.utn.interactiveconsortium.entity.MaintenanceFeePaymentEntity;
+import com.utn.interactiveconsortium.enums.EPaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,11 +16,13 @@ public interface MaintenanceFeePaymentRepository extends JpaRepository<Maintenan
     @Query("SELECT mfp " +
             "FROM MaintenanceFeePaymentEntity mfp " +
             "WHERE mfp.maintenanceFee.consortium.consortiumId = :consortiumId " +
-            "AND mfp.maintenanceFee.period = :period " +
+            "AND (:period IS NULL OR mfp.maintenanceFee.period = :period) " +
+            "AND (:status IS NULL OR mfp.status = :status) " +
             "AND mfp.maintenanceFee.consortium.consortiumId IN :associatedConsortiumIds")
     Page<MaintenanceFeePaymentEntity> getMaintenanceFeePayments(
             Long consortiumId,
             LocalDate period,
+            EPaymentStatus status,
             List<Long> associatedConsortiumIds,
             Pageable pageable
     );

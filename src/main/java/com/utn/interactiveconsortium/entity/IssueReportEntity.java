@@ -23,7 +23,7 @@ public class IssueReportEntity {
 
     private String subject;
 
-    private String message;
+    private String issue;
 
     private String response;
 
