@@ -64,7 +64,7 @@ public class ConsortiumController {
     }
 
     @GetMapping("/consortium/{idConsortium}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_RESIDENT', 'ROLE_ADMIN')")
     public ConsortiumDto getConsortiumById(@PathVariable Long idConsortium) throws EntityNotFoundException {
         return consortiumService.getConsortiumById(idConsortium);
     }
