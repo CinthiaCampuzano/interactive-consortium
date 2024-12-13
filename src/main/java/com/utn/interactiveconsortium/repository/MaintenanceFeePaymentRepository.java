@@ -32,7 +32,7 @@ public interface MaintenanceFeePaymentRepository extends JpaRepository<Maintenan
             "SELECT mfp " +
             "FROM MaintenanceFeePaymentEntity mfp " +
             "WHERE mfp.maintenanceFee.consortium.consortiumId = :consortiumId " +
-            "AND mfp.maintenanceFee.period = :period " +
+            "AND (:period IS NULL OR mfp.maintenanceFee.period = :period) " +
             "AND mfp.maintenanceFee.consortium.consortiumId IN :associatedConsortiumIds " +
             "AND mfp.department.departmentId IN :associatedDepartmentsIds"
     )

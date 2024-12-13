@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
 @Table(name = "post")
 @Entity
 @Setter
@@ -12,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostEntity {
+
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long postId;
@@ -25,4 +28,8 @@ public class PostEntity {
     @ManyToOne
     @JoinColumn(name = "consortium_id")
     private ConsortiumEntity consortium;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostReactionEntity> postReactions;
+
 }

@@ -1,6 +1,7 @@
 package com.utn.interactiveconsortium.controller;
 
 import com.utn.interactiveconsortium.dto.PostDto;
+import com.utn.interactiveconsortium.enums.EPostReaction;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,9 @@ public class PostController {
         postService.deletePost(postId);
     }
 
-
-
+    @PostMapping(value = "{postId}/react")
+    @PreAuthorize("hasAnyAuthority('ROLE_OWNER', 'ROLE_RESIDENT')")
+    public PostDto reactToPost(@PathVariable Long postId, @RequestParam EPostReaction reaction) throws EntityNotFoundException {
+        return postService.reactToPost(postId, reaction);
+    }
 }

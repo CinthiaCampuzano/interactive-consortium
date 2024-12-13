@@ -41,12 +41,12 @@ public class MaintenanceFeePaymentController {
         maintenanceFeePaymentService.downloadMaintenanceFeePayment(maintenanceFeePaymentId, response);
     }
 
-    @GetMapping("/person")
+    @GetMapping("/{consortiumId}/person")
     @PreAuthorize("hasAnyAuthority('ROLE_PROPIETARY', 'ROLE_RESIDENT')")
     public Page<MaintenanceFeePaymentDto> getMaintenanceFeePaymentsForPerson(
             @PathVariable Long consortiumId,
-            @RequestParam @CustomDateFormat LocalDate period,
-            @RequestParam EPaymentStatus status,
+            @RequestParam (required = false) @CustomDateFormat LocalDate period,
+            @RequestParam (required = false) EPaymentStatus status,
             Pageable page
     ) {
         return maintenanceFeePaymentService.getMaintenanceFeePaymentsForPerson(consortiumId, period, status, page);

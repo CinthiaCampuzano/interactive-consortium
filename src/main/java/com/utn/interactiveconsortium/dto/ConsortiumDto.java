@@ -18,4 +18,6 @@ public class ConsortiumDto {
 
     private AdministratorDto administrator;
 
+    private String imagePath;
+
 }

@@ -15,4 +15,6 @@ public class AmenityDto {
 
     private ConsortiumDto consortium;
 
+    private String imagePath;
+
 }
