@@ -19,6 +19,7 @@ public class IssueReportEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long issueReportId;
 
+    @Enumerated(EnumType.STRING)
     private EIssueReportStatus status;
 
     private String subject;
