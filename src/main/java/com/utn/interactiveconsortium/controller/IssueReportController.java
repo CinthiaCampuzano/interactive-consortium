@@ -26,7 +26,7 @@ public class IssueReportController {
     @PreAuthorize(ADMIN_AUTHORITY)
     public Page<IssueReportDto> getIssueReportAdmin(
             @PathVariable Long consortiumId,
-            @RequestParam EIssueReportStatus status,
+            @RequestParam (required = false) EIssueReportStatus status,
             Pageable pageable
     ) throws EntityNotFoundException {
         return issueReportService.getIssueReportAdmin(consortiumId, status, pageable);
