@@ -1,5 +1,6 @@
 package com.utn.interactiveconsortium.service;
 
+import com.utn.interactiveconsortium.config.MinioConfig;
 import com.utn.interactiveconsortium.dto.ConsortiumDto;
 import com.utn.interactiveconsortium.dto.PersonDto;
 import com.utn.interactiveconsortium.entity.AdministratorEntity;
@@ -11,11 +12,18 @@ import com.utn.interactiveconsortium.mapper.PersonMapper;
 import com.utn.interactiveconsortium.repository.AdministratorRepository;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.repository.PersonRepository;
+import com.utn.interactiveconsortium.util.MinioUtils;
+import io.minio.PutObjectArgs;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,6 +42,10 @@ public class ConsortiumService {
     private final ConsortiumMapper consortiumMapper;
 
     private final PersonMapper personMapper;
+
+    private final MinioConfig minioConfig;
+
+    private final MinioUtils minioUtils;
 
     public Page<ConsortiumDto> getConsortiums(Pageable page){
         return consortiumMapper.toPage(consortiumRepository.findAll(page));
@@ -153,6 +165,37 @@ public class ConsortiumService {
     public ConsortiumEntity findConsortiumById(Long consortiumId) throws EntityNotFoundException {
         return consortiumRepository.findById(consortiumId)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró el consorcio"));
+    }
+
+    public ConsortiumDto uploadImage(Long consortiumId, MultipartFile file) throws EntityNotFoundException, IOException {
+        ConsortiumEntity consortium = consortiumRepository.findById(consortiumId)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el consorcio"));
+
+        String filePath = "consortiums/" + consortiumId + "/" + file.getOriginalFilename();
+
+        minioUtils.uploadFile(minioConfig.getBucketName(), file, filePath, file.getContentType());
+
+        consortium.setImagePath(filePath);
+        consortiumRepository.save(consortium);
+
+        return consortiumMapper.convertEntityToDto(consortium);
+    }
+
+    public void downloadImage(Long consortiumId, HttpServletResponse response) throws EntityNotFoundException, IOException {
+        ConsortiumEntity consortium = consortiumRepository.findById(consortiumId)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el consorcio"));
+
+        String filePath = consortium.getImagePath();
+        if (filePath == null || filePath.isEmpty()) {
+            throw new EntityNotFoundException("No se encontró la imagen para el consorcio");
+        }
+
+        InputStream fileInputStream = minioUtils.getObject(minioConfig.getBucketName(), filePath);
+        response.setHeader("Content-Disposition", "attachment;filename=" + filePath.substring(filePath.lastIndexOf("/") + 1));
+        response.setContentType("image/jpeg");
+        response.setCharacterEncoding("UTF-8");
+        IOUtils.copy(fileInputStream, response.getOutputStream());
+        response.flushBuffer();
     }
 
 }

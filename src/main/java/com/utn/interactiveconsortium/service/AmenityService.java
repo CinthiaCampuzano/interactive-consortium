@@ -1,6 +1,8 @@
 package com.utn.interactiveconsortium.service;
 
+import com.utn.interactiveconsortium.config.MinioConfig;
 import com.utn.interactiveconsortium.dto.AmenityDto;
+import com.utn.interactiveconsortium.dto.ConsortiumDto;
 import com.utn.interactiveconsortium.entity.AmenityEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
@@ -8,18 +10,31 @@ import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.AmenityMapper;
 import com.utn.interactiveconsortium.repository.AmenityRepository;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
+import com.utn.interactiveconsortium.util.MinioUtils;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 @Service
 @RequiredArgsConstructor
 public class AmenityService {
 
     private final AmenityRepository amenityRepository;
+
     private final ConsortiumRepository consortiumRepository;
+
     private final AmenityMapper amenityMapper;
+
+    private final MinioConfig minioConfig;
+
+    private final MinioUtils minioUtils;
 
     public Page<AmenityDto> getAmenities(Long idConsortium, Pageable page){
         return amenityMapper.toPage(amenityRepository.findByConsortiumConsortiumId(idConsortium, page));
@@ -92,5 +107,34 @@ public class AmenityService {
     }
 
 
+    public AmenityDto uploadImage(Long amenityId, MultipartFile file) throws EntityNotFoundException, IOException {
+        AmenityEntity amenity = amenityRepository.findById(amenityId)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el espacio comun"));
 
+        String filePath = "amenityId/" + amenityId + "/" + file.getOriginalFilename();
+
+        minioUtils.uploadFile(minioConfig.getBucketName(), file, filePath, file.getContentType());
+
+        amenity.setImagePath(filePath);
+        amenityRepository.save(amenity);
+
+        return amenityMapper.convertEntityToDto(amenity);
+    }
+
+    public void downloadImage(Long amenityId, HttpServletResponse response) throws EntityNotFoundException, IOException {
+        AmenityEntity amenity = amenityRepository.findById(amenityId)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el espacio comun"));
+
+        String filePath = amenity.getImagePath();
+        if (filePath == null || filePath.isEmpty()) {
+            throw new EntityNotFoundException("No se encontró la imagen para el espacio comun");
+        }
+
+        InputStream fileInputStream = minioUtils.getObject(minioConfig.getBucketName(), filePath);
+        response.setHeader("Content-Disposition", "attachment;filename=" + filePath.substring(filePath.lastIndexOf("/") + 1));
+        response.setContentType("image/jpeg");
+        response.setCharacterEncoding("UTF-8");
+        IOUtils.copy(fileInputStream, response.getOutputStream());
+        response.flushBuffer();
+    }
 }

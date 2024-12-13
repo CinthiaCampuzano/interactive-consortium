@@ -31,4 +31,6 @@ public class AmenityEntity {
             CascadeType.REFRESH, CascadeType.DETACH})
     private List<BookingEntity> bookings;
 
+    private String imagePath;
+
 }
