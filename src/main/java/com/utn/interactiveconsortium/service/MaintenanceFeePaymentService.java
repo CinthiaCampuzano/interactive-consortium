@@ -84,8 +84,9 @@ public class MaintenanceFeePaymentService {
         minioUtils.uploadFile(minioConfig.getBucketName(), file, filePath, file.getContentType());
         InputStream inputStream = minioUtils.getObject(minioConfig.getBucketName(), filePath);
 
-        Set<String> mails = Set.of(maintenanceFeePayment.getDepartment().getResident().getMail(),
-                maintenanceFeePayment.getDepartment().getPropietary().getMail());
+        Set<String> mails = new HashSet<>();
+        mails.add(maintenanceFeePayment.getDepartment().getResident().getMail());
+        mails.add(maintenanceFeePayment.getDepartment().getPropietary().getMail());
         sendMaintenanceFeeMailWithAttachment(mails, maintenanceFeePayment.getMaintenanceFee().getConsortium().getName(), period, fileName, inputStream);
 
         return mapper.convertEntityToDto(saved);
