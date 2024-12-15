@@ -1,11 +1,13 @@
 package com.utn.interactiveconsortium.service;
 
 import com.utn.interactiveconsortium.dto.IssueReportDto;
+import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.IssueReportEntity;
 import com.utn.interactiveconsortium.enums.EIssueReportStatus;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.exception.IssueReportStatusException;
 import com.utn.interactiveconsortium.mapper.IssueReportMapper;
+import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.repository.IssueReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +25,8 @@ public class IssueReportService {
 
     private final IssueReportRepository issueReportRepository;
 
+    private final ConsortiumRepository consortiumRepository;
+
     private final IssueReportMapper issueReportMapper;
 
     public Page<IssueReportDto> getIssueReport(Long consortiumId, EIssueReportStatus status, Pageable pageable) throws EntityNotFoundException {
@@ -38,7 +42,12 @@ public class IssueReportService {
         if (!associatedConsortiumIds.contains(issueReportDto.getConsortium().getConsortiumId())) {
             throw new EntityNotFoundException("No se encontro el consorcio");
         }
+        ConsortiumEntity consortium = consortiumRepository.findById(issueReportDto.getConsortium().getConsortiumId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro el consorcio"));
+
         IssueReportEntity issueReport = issueReportMapper.convertDtoToEntity(issueReportDto);
+
+        issueReport.setConsortium(consortium);
         issueReport.setStatus(EIssueReportStatus.PENDING);
         issueReport.setCreatedDate(LocalDateTime.now());
 
