@@ -22,11 +22,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -55,8 +57,8 @@ public class MaintenanceFeeService {
     private static final String FILE_SEPARATOR = "/";
 
     @Transactional(rollbackOn = Exception.class)
-    public MaintenanceFeeDto create(Long consortiumId, MultipartFile file) throws EntityNotFoundException, EntityAlreadyExistsException, MessagingException, IOException {
-        LocalDate period = LocalDate.now().withDayOfMonth(1).minusMonths(1);
+    public MaintenanceFeeDto create(Long consortiumId, BigDecimal totalAmount, MultipartFile file) throws EntityNotFoundException, EntityAlreadyExistsException, MessagingException, IOException {
+        LocalDate period = LocalDate.now().withDayOfMonth(1);
         ConsortiumEntity consortium = consortiumService.findConsortiumById(consortiumId);
         Optional<MaintenanceFeeEntity> maintenanceFeeEntity = maintenanceFeeRepository.findByConsortiumAndPeriod(consortium, period);
         if (maintenanceFeeEntity.isPresent()) {
@@ -70,6 +72,7 @@ public class MaintenanceFeeService {
         MaintenanceFeeEntity newMaintenanceFeeEntity = MaintenanceFeeEntity.builder()
                 .period(period)
                 .consortium(consortium)
+                .totalAmount(totalAmount)
                 .fileName(fileName)
                 .uploadDate(LocalDateTime.now())
                 .build();
@@ -128,7 +131,21 @@ public class MaintenanceFeeService {
     }
 
     public Page<MaintenanceFeeDto> getMaintenanceFees(Long idConsortium, Pageable page) {
-        return maintenanceFeeMapper.toPage(maintenanceFeeRepository.findByConsortiumConsortiumIdOrderByPeriodDesc(idConsortium, page));
+
+        Page<MaintenanceFeeEntity> maintenanceFeeEntities = maintenanceFeeRepository.findByConsortiumConsortiumIdOrderByPeriodDesc(idConsortium, page);
+        Page<MaintenanceFeeDto> maintenanceFeeDtos = maintenanceFeeMapper.toPage(maintenanceFeeEntities);
+
+        maintenanceFeeDtos.getContent().forEach(maintenanceFeeDto -> {
+            Map<String, String> resume = getMaintenanceFeeResume(maintenanceFeeEntities.stream()
+                    .filter(maintenanceFeeEntity -> maintenanceFeeEntity.getMaintenanceFeeId().equals(maintenanceFeeDto.getMaintenanceFeeId()))
+                    .findFirst()
+                    .orElseThrow()
+            );
+            maintenanceFeeDto.setResume(resume);
+        });
+
+        return maintenanceFeeDtos;
+
     }
 
     public void deleteByMaintenanceFeeId(Long maintenanceFeeId) throws EntityNotFoundException, InvalidMaintenanceFeePeriodException {
@@ -161,6 +178,32 @@ public class MaintenanceFeeService {
     public void sendMaintenanceFeeMailWithAttachment(Set<String> mails, String consortiumName, LocalDate period, String fileName, InputStream file) throws MessagingException, IOException {
         String subject = String.format(MAINTENANCE_FEE_SUBJECT, getMonthName(period) + " " + period.getYear(), consortiumName);
         emailService.sendMessageWithAttachment(mails.toArray(new String[0]), subject, null, fileName, file);
+    }
+
+    private Map<String, String> getMaintenanceFeeResume(MaintenanceFeeEntity maintenanceFee) {
+        Integer totalCount = Math.toIntExact(maintenanceFee.getMaintenanceFeePayments().stream().count());
+
+        Integer paymentCount = Math.toIntExact(maintenanceFee.getMaintenanceFeePayments().stream()
+                .filter(payment -> payment.getStatus() == EPaymentStatus.PAID)
+                .count());
+        BigDecimal paymentAmount = maintenanceFee.getMaintenanceFeePayments().stream()
+                .filter(payment -> payment.getStatus() == EPaymentStatus.PAID)
+                .map(MaintenanceFeePaymentEntity::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Integer pendingCount = totalCount - paymentCount;
+        BigDecimal pendingAmount = maintenanceFee.getTotalAmount().subtract(paymentAmount);
+
+        Map<String, String> resume = Map.of(
+                "totalCount", totalCount.toString(),
+                "totalAmount", maintenanceFee.getTotalAmount().toString(),
+                "paymentCount", paymentCount.toString(),
+                "paymentAmount", paymentAmount.toString(),
+                "pendingCount", pendingCount.toString(),
+                "pendingAmount", pendingAmount.toString()
+        );
+
+        return resume;
     }
 
     private String getMonthName(LocalDate period) {

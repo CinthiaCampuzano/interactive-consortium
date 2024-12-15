@@ -5,10 +5,11 @@ import com.utn.interactiveconsortium.dto.PostDto;
 import com.utn.interactiveconsortium.entity.PostEntity;
 import org.mapstruct.Mapper;
 import org.springframework.data.domain.Page;
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ConsortiumMapper.class})
 public interface PostMapper {
 
     PostDto convertEntityToDto(PostEntity postEntity);
+
     PostEntity convertDtoToEntity(PostDto postDto);
 
     default Page<PostDto> toPage(Page<PostEntity> page){

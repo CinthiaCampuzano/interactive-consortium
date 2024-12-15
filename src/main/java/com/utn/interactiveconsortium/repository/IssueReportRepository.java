@@ -13,6 +13,6 @@ public interface IssueReportRepository extends JpaRepository<IssueReportEntity,L
             "FROM IssueReportEntity ir " +
             "WHERE ir.consortium.consortiumId = :consortiumId " +
             "AND (:status is null OR ir.status = :status)")
-    Page<IssueReportEntity> getIssueReportAdmin(Long consortiumId, EIssueReportStatus status, Pageable pageable);
+    Page<IssueReportEntity> getIssueReport(Long consortiumId, EIssueReportStatus status, Pageable pageable);
 }
 

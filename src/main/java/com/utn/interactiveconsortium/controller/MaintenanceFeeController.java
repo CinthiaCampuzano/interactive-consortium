@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 
 @RestController
@@ -31,9 +32,10 @@ public class MaintenanceFeeController {
     @PostMapping("/upload")
     public MaintenanceFeeDto createMaintenanceFee(
             @RequestParam Long consortiumId,
+            @RequestParam BigDecimal totalAmount,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws EntityNotFoundException, EntityAlreadyExistsException, MessagingException, IOException {
-        return maintenanceFeeService.create(consortiumId, file);
+        return maintenanceFeeService.create(consortiumId, totalAmount, file);
     }
 
     @GetMapping("/{maintenanceFeeId}/download")

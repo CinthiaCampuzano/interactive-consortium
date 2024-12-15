@@ -12,9 +12,9 @@ public class ConsortiumDto {
 
     private String address;
 
-    private String city;
+    private CityDto city;
 
-    private String province;
+    private StateDto province;
 
     private AdministratorDto administrator;
 

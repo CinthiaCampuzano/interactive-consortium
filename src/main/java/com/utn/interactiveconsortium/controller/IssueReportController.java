@@ -22,6 +22,8 @@ public class IssueReportController {
 
     private static final String RESIDENT_AUTHORITY = "hasAnyAuthority('ROLE_RESIDENT')";
 
+    private static final String PERSON_AUTHORITY = "hasAnyAuthority('ROLE_RESIDENT', 'ROLE_PROPIETARY')";
+
     @GetMapping("/consortium/{consortiumId}/admin")
     @PreAuthorize(ADMIN_AUTHORITY)
     public Page<IssueReportDto> getIssueReportAdmin(
@@ -29,7 +31,17 @@ public class IssueReportController {
             @RequestParam (required = false) EIssueReportStatus status,
             Pageable pageable
     ) throws EntityNotFoundException {
-        return issueReportService.getIssueReportAdmin(consortiumId, status, pageable);
+        return issueReportService.getIssueReport(consortiumId, status, pageable);
+    }
+
+    @GetMapping("/consortium/{consortiumId}/person")
+    @PreAuthorize(PERSON_AUTHORITY)
+    public Page<IssueReportDto> getIssueReportPerson(
+            @PathVariable Long consortiumId,
+            @RequestParam (required = false) EIssueReportStatus status,
+            Pageable pageable
+    ) throws EntityNotFoundException {
+        return issueReportService.getIssueReport(consortiumId, status, pageable);
     }
 
     @PostMapping

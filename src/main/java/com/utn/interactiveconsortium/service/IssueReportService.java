@@ -25,12 +25,12 @@ public class IssueReportService {
 
     private final IssueReportMapper issueReportMapper;
 
-    public Page<IssueReportDto> getIssueReportAdmin(Long consortiumId, EIssueReportStatus status, Pageable pageable) throws EntityNotFoundException {
+    public Page<IssueReportDto> getIssueReport(Long consortiumId, EIssueReportStatus status, Pageable pageable) throws EntityNotFoundException {
         List<Long> associatedConsortiumIds = loggedUserService.getAssociatedConsortiumIds();
         if (!associatedConsortiumIds.contains(consortiumId)) {
             throw new EntityNotFoundException("No se encontro el consorcio");
         }
-        return issueReportMapper.toPage(issueReportRepository.getIssueReportAdmin(consortiumId, status, pageable));
+        return issueReportMapper.toPage(issueReportRepository.getIssueReport(consortiumId, status, pageable));
     }
 
     public IssueReportDto createIssueReport(IssueReportDto issueReportDto) throws EntityNotFoundException {
