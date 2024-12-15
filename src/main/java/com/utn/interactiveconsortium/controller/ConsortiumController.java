@@ -118,7 +118,7 @@ public class ConsortiumController {
     }
 
     @GetMapping("/{consortiumId}/download")
-    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN', 'ROLE_RESIDENT', 'ROLE_PROPRIETARY')")
     public void downloadImage(
             @PathVariable Long consortiumId,
             HttpServletResponse response
