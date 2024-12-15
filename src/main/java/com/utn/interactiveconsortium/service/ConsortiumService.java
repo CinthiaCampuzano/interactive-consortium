@@ -6,6 +6,8 @@ import com.utn.interactiveconsortium.dto.PersonDto;
 import com.utn.interactiveconsortium.entity.AdministratorEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.PersonEntity;
+import com.utn.interactiveconsortium.enums.ECity;
+import com.utn.interactiveconsortium.enums.EState;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.ConsortiumMapper;
 import com.utn.interactiveconsortium.mapper.PersonMapper;
@@ -120,8 +122,8 @@ public class ConsortiumService {
 
         consortiumToUpdateEntity.setName(consortiumToUpdate.getName());
         consortiumToUpdateEntity.setAddress(consortiumToUpdate.getAddress());
-        consortiumToUpdateEntity.setCity(consortiumToUpdate.getCity());
-        consortiumToUpdateEntity.setProvince(consortiumToUpdate.getProvince());
+        consortiumToUpdateEntity.setCity(ECity.valueOf(consortiumToUpdate.getCity().getId()));
+        consortiumToUpdateEntity.setProvince(EState.valueOf(consortiumToUpdate.getProvince().getId()));
         consortiumToUpdateEntity.setAdministrator(administratorRepository.findById(consortiumToUpdate.getAdministrator().getAdministratorId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontro el administrador")));
 

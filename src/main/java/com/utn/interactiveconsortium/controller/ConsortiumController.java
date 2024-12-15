@@ -1,9 +1,9 @@
 package com.utn.interactiveconsortium.controller;
 
-import com.utn.interactiveconsortium.dto.ConsortiumDto;
-import com.utn.interactiveconsortium.dto.MaintenanceFeeDto;
-import com.utn.interactiveconsortium.dto.PersonDto;
+import com.utn.interactiveconsortium.dto.*;
 import com.utn.interactiveconsortium.entity.PersonEntity;
+import com.utn.interactiveconsortium.enums.ECity;
+import com.utn.interactiveconsortium.enums.EState;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.service.ConsortiumService;
@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -123,6 +124,24 @@ public class ConsortiumController {
             HttpServletResponse response
     ) throws EntityNotFoundException, MessagingException, IOException {
         consortiumService.downloadImage(consortiumId, response);;
+    }
+
+    @GetMapping("/states")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
+    public List<StateDto> getStates() {
+        return Arrays.stream(EState.values())
+                .map(state -> new StateDto(state.name(), state.getDisplayName()))
+                .toList();
+    }
+
+    @GetMapping("/states/{stateId}/cities")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
+    public List<CityDto> getCitiesByState(@PathVariable String stateId) {
+        EState state = EState.valueOf(stateId);
+        return Arrays.stream(ECity.values())
+                .filter(city -> city.getState() == state)
+                .map(city -> new CityDto(city.name(), city.getDisplayName()))
+                .toList();
     }
 
 }

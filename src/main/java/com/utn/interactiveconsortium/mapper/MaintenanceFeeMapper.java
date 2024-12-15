@@ -6,7 +6,7 @@ import com.utn.interactiveconsortium.entity.MaintenanceFeeEntity;
 import org.mapstruct.Mapper;
 import org.springframework.data.domain.Page;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ConsortiumMapper.class})
 public interface MaintenanceFeeMapper {
 
     MaintenanceFeeDto convertEntityToDto(MaintenanceFeeEntity maintenanceFeeEntity);

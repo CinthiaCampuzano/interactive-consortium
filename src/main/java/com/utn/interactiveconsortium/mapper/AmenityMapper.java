@@ -5,7 +5,7 @@ import com.utn.interactiveconsortium.entity.AmenityEntity;
 import org.mapstruct.Mapper;
 import org.springframework.data.domain.Page;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ConsortiumMapper.class})
 public interface AmenityMapper {
     AmenityDto convertEntityToDto(AmenityEntity amenityEntity);
     AmenityEntity convertDtoToEntity(AmenityDto amenityDto);

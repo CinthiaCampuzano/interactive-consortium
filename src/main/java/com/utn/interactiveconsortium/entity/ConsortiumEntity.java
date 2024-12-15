@@ -1,5 +1,7 @@
 package com.utn.interactiveconsortium.entity;
 
+import com.utn.interactiveconsortium.enums.ECity;
+import com.utn.interactiveconsortium.enums.EState;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,9 +24,11 @@ public class ConsortiumEntity {
 
     private String address;
 
-    private String city;
+    @Enumerated(EnumType.STRING)
+    private ECity city;
 
-    private String province;
+    @Enumerated(EnumType.STRING)
+    private EState province;
 
     @ManyToOne
     @JoinColumn(name = "administrator_id")
