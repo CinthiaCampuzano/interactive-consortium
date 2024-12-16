@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 public interface IssueReportRepository extends JpaRepository<IssueReportEntity,Long> {
 
     @Query("SELECT ir " +
@@ -14,5 +16,8 @@ public interface IssueReportRepository extends JpaRepository<IssueReportEntity,L
             "WHERE ir.consortium.consortiumId = :consortiumId " +
             "AND (:status is null OR ir.status = :status)")
     Page<IssueReportEntity> getIssueReport(Long consortiumId, EIssueReportStatus status, Pageable pageable);
+
+    List<IssueReportEntity> findByConsortiumConsortiumId(Long consortiumId);
+
 }
 

@@ -1,5 +1,6 @@
 package com.utn.interactiveconsortium.controller;
 
+import com.utn.interactiveconsortium.dto.IssueReportCardsDto;
 import com.utn.interactiveconsortium.dto.IssueReportDto;
 import com.utn.interactiveconsortium.enums.EIssueReportStatus;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
@@ -44,6 +45,12 @@ public class IssueReportController {
         return issueReportService.getIssueReport(consortiumId, status, pageable);
     }
 
+    @GetMapping("/consortium/{consortiumId}/cards")
+    @PreAuthorize(ADMIN_AUTHORITY)
+    public IssueReportCardsDto getIssueReportCards(@PathVariable Long consortiumId) throws EntityNotFoundException {
+        return issueReportService.getIssueReportCards(consortiumId);
+    }
+
     @PostMapping
     @PreAuthorize(RESIDENT_AUTHORITY)
     public IssueReportDto createIssueReport(@RequestBody IssueReportDto issueReportDto) throws EntityNotFoundException {
@@ -56,7 +63,7 @@ public class IssueReportController {
         issueReportService.deleteIssueReport(issueReportId);
     }
 
-    @PatchMapping("/{issueReportId}/review")
+    @PostMapping("/{issueReportId}/review")
     @PreAuthorize(ADMIN_AUTHORITY)
     public IssueReportDto setIssuerReportToStatusUnderReview(@PathVariable Long issueReportId) throws EntityNotFoundException {
         return issueReportService.setIssuerReportToStatusUnderReview(issueReportId);

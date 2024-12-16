@@ -1,5 +1,6 @@
 package com.utn.interactiveconsortium.service;
 
+import com.utn.interactiveconsortium.dto.IssueReportCardsDto;
 import com.utn.interactiveconsortium.dto.IssueReportDto;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.IssueReportEntity;
@@ -72,11 +73,6 @@ public class IssueReportService {
     }
 
     public IssueReportDto setIssuerReportToStatusUnderReview(Long issueReportId) throws EntityNotFoundException {
-        List<Long> associatedConsortiumIds = loggedUserService.getAssociatedConsortiumIds();
-        if (!associatedConsortiumIds.contains(issueReportId)) {
-            throw new EntityNotFoundException("No se encontro el consorcio");
-        }
-
         IssueReportEntity issueReport = issueReportRepository.findById(issueReportId)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontro el reclamo"));
 
@@ -94,11 +90,44 @@ public class IssueReportService {
         IssueReportEntity issueReport = issueReportRepository.findById(issueReportDto.getIssueReportId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontro el reclamo"));
 
-        issueReport.setResponse(issueReport.getResponse());
+        issueReport.setResponse(issueReportDto.getResponse());
         issueReport.setStatus(EIssueReportStatus.FINISHED);
         issueReport.setResponseDate(LocalDateTime.now());
 
         return issueReportMapper.convertEntityToDto(issueReportRepository.save(issueReport));
     }
 
+    public IssueReportCardsDto getIssueReportCards(Long consortiumId) throws EntityNotFoundException {
+        List<Long> associatedConsortiumIds = loggedUserService.getAssociatedConsortiumIds();
+        if (!associatedConsortiumIds.contains(consortiumId)) {
+            throw new EntityNotFoundException("No se encontro el consorcio");
+        }
+
+        List<IssueReportEntity> issueReports = issueReportRepository.findByConsortiumConsortiumId(consortiumId);
+        Integer pending = 0;
+        Integer underReview = 0;
+        Integer resolved = 0;
+
+        for (IssueReportEntity issueReport : issueReports) {
+            switch (issueReport.getStatus()) {
+                case PENDING:
+                    pending++;
+                    break;
+                case UNDER_REVIEW:
+                    underReview++;
+                    break;
+                case FINISHED:
+                    resolved++;
+                    break;
+            }
+        }
+
+        return IssueReportCardsDto.builder()
+                .pending(pending)
+                .underReview(underReview)
+                .resolved(resolved)
+                .total(issueReports.size())
+                .build();
+
+    }
 }
