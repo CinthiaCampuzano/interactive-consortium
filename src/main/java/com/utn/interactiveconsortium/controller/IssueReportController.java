@@ -32,17 +32,16 @@ public class IssueReportController {
             @RequestParam (required = false) EIssueReportStatus status,
             Pageable pageable
     ) throws EntityNotFoundException {
-        return issueReportService.getIssueReport(consortiumId, status, pageable);
+        return issueReportService.getIssueReportAdmin(consortiumId, status, pageable);
     }
 
     @GetMapping("/consortium/{consortiumId}/person")
     @PreAuthorize(PERSON_AUTHORITY)
     public Page<IssueReportDto> getIssueReportPerson(
             @PathVariable Long consortiumId,
-            @RequestParam (required = false) EIssueReportStatus status,
             Pageable pageable
     ) throws EntityNotFoundException {
-        return issueReportService.getIssueReport(consortiumId, status, pageable);
+        return issueReportService.getIssueReportPerson(consortiumId, pageable);
     }
 
     @GetMapping("/consortium/{consortiumId}/cards")
@@ -50,6 +49,13 @@ public class IssueReportController {
     public IssueReportCardsDto getIssueReportCards(@PathVariable Long consortiumId) throws EntityNotFoundException {
         return issueReportService.getIssueReportCards(consortiumId);
     }
+
+    @GetMapping("/consortium/{consortiumId}/cards/person")
+    @PreAuthorize(PERSON_AUTHORITY)
+    public IssueReportCardsDto getIssueReportCardsPerson(@PathVariable Long consortiumId) throws EntityNotFoundException {
+        return issueReportService.getIssueReportCardsPerson(consortiumId);
+    }
+
 
     @PostMapping
     @PreAuthorize(RESIDENT_AUTHORITY)

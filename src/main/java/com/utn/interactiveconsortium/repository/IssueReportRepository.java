@@ -17,7 +17,15 @@ public interface IssueReportRepository extends JpaRepository<IssueReportEntity,L
             "AND (:status is null OR ir.status = :status)")
     Page<IssueReportEntity> getIssueReport(Long consortiumId, EIssueReportStatus status, Pageable pageable);
 
+    @Query("SELECT ir " +
+            "FROM IssueReportEntity ir " +
+            "WHERE ir.consortium.consortiumId = :consortiumId " +
+            "AND ir.person.personId = :personId " )
+    Page<IssueReportEntity> getIssueReportPerson(Long consortiumId, Long personId, Pageable pageable);
+
     List<IssueReportEntity> findByConsortiumConsortiumId(Long consortiumId);
+
+    List<IssueReportEntity> findByConsortiumConsortiumIdAndPersonPersonId(Long consortiumId, Long personId);
 
 }
 
