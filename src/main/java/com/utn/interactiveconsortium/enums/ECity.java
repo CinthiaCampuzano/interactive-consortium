@@ -55,22 +55,7 @@ public enum ECity {
     SAUCE(EState.CORRIENTES, "Sauce"),
 
 
-    FORMOSA(EState.FORMOSA, "Formosa"),
-    SAN_SALVADOR_DE_JUJUY(EState.JUJUY, "San Salvador de Jujuy"),
-    SANTA_ROSA_LA_PAMPA(EState.LA_PAMPA, "Santa Rosa"),
-    LA_RIOJA(EState.LA_RIOJA, "La Rioja"),
-    MENDOZA(EState.MENDOZA, "Mendoza"),
-    POSADAS(EState.MISIONES, "Posadas"),
-    NEUQUEN(EState.NEUQUEN, "Neuquén"),
-    VIEDMA(EState.RIO_NEGRO, "Viedma"),
-    SALTA(EState.SALTA, "Salta"),
-    SAN_JUAN(EState.SAN_JUAN, "San Juan"),
-    SAN_LUIS(EState.SAN_LUIS, "San Luis"),
-    RIO_GALLEGOS(EState.SANTA_CRUZ, "Río Gallegos"),
-    SANTA_FE(EState.SANTA_FE, "Santa Fe"),
-    SANTIAGO_DEL_ESTERO(EState.SANTIAGO_DEL_ESTERO, "Santiago del Estero"),
-    USHUAIA(EState.TIERRA_DEL_FUEGO, "Ushuaia"),
-    SAN_MIGUEL_DE_TUCUMAN(EState.TUCUMAN, "San Miguel de Tucumán");
+    FORMOSA(EState.FORMOSA, "Formosa");
 
     private final EState state;
     private final String displayName;
