@@ -59,7 +59,7 @@ public class ConsortiumController {
     }
 
     @GetMapping("/person")
-    @PreAuthorize("hasAnyAuthority('ROLE_RESIDENT', 'ROLE_PROPRIETARY')")
+    @PreAuthorize("hasAnyAuthority('ROLE_RESIDENT', 'ROLE_PROPIETARY')")
     public Page<ConsortiumDto> getConsortiumByPerson(Pageable page) {
         return consortiumService.getConsortiumByPerson(page);
     }
@@ -118,7 +118,7 @@ public class ConsortiumController {
     }
 
     @GetMapping("/{consortiumId}/download")
-    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN', 'ROLE_RESIDENT', 'ROLE_PROPRIETARY')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN', 'ROLE_RESIDENT', 'ROLE_PROPIETARY')")
     public void downloadImage(
             @PathVariable Long consortiumId,
             HttpServletResponse response

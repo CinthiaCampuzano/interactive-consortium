@@ -66,6 +66,17 @@ public class JwtService {
                     .map(DepartmentEntity::getDepartmentId)
                     .toList();
 
+            List<ERole> userRoles= new ArrayList<>();
+            if (!propietaryDepartmentIds.isEmpty()) {
+                userRoles.add(ERole.ROLE_PROPIETARY);
+            }
+
+            if (!residentDepartmentIds.isEmpty()) {
+                userRoles.add(ERole.ROLE_RESIDENT);
+            }
+
+            extraClaims.put("role", userRoles);
+
             String name = user.getPerson().getName();
             String lastName = user.getPerson().getLastName();
             String dni = user.getPerson().getDni();
