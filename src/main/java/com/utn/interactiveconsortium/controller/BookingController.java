@@ -44,7 +44,4 @@ public class BookingController {
         bookingService.deleteBooking(idBooking);
     }
 
-
-
-
 }

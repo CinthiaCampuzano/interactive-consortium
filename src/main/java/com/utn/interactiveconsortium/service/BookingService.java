@@ -25,10 +25,16 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class BookingService {
+
     private final BookingRepository bookingRepository;
+
     private final BookingMapper bookingMapper;
+
     private final AmenityRepository amenityRepository;
+
     private final PersonRepository personRepository;
+
+    private final LoggedUserService loggedUserService;
 
     public Page<BookingDto> getAllBookingsForAdmin(Long idConsortium, Pageable page) {
         return bookingMapper.toPage(bookingRepository.findByAmenity_Consortium_ConsortiumId(idConsortium, page));
@@ -82,8 +88,7 @@ public class BookingService {
         AmenityEntity amenity = amenityRepository.findById(bookingDto.getAmenity().getAmenityId())
                 .orElseThrow(() -> new EntityNotFoundException("No existe ese espacio comun"));
 
-        PersonEntity resident = personRepository.findById(bookingDto.getResident().getPersonId())
-                .orElseThrow(() -> new EntityNotFoundException("No existe ese residente"));
+        PersonEntity resident = loggedUserService.getLoggedPerson();
 
         LocalDate now = LocalDate.now();
         LocalDate firstDayOfMonth = now.withDayOfMonth(1);
@@ -92,7 +97,7 @@ public class BookingService {
         List<BookingEntity> bookingsThisMonth = bookingRepository.findByResidentIdAndAmenityIdAndStartDateBetween(resident.getPersonId(), amenity.getAmenityId(), firstDayOfMonth, lastDayOfMonth);
 
         if (bookingsThisMonth.size() >= amenity.getMaxBookings()) {
-            throw new BookingLimitExceededException("El residente ya ha hecho 3 reservas este mes para este espacio común");
+            throw new BookingLimitExceededException("El residente ya ha hecho " + (amenity.getMaxBookings() + 1) + " reservas este mes para este espacio común");
         }
 
         List<DateShiftDto> dateShiftDtoList = getAvailableDates(bookingDto.getAmenity().getAmenityId());
