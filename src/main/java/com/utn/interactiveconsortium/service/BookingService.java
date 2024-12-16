@@ -40,8 +40,11 @@ public class BookingService {
         return bookingMapper.toPage(bookingRepository.findByAmenity_Consortium_ConsortiumId(idConsortium, page));
     }
 
-    public Page<BookingDto> getBookingsForResident(Long idConsortium, Long idResident, Pageable page) {
-        return bookingMapper.toPage(bookingRepository.findByAmenity_Consortium_ConsortiumIdAndResident_PersonId(idConsortium, idResident, page));
+    public Page<BookingDto> getBookingsForResident(Long idConsortium, Pageable page) {
+
+        Long residentId = loggedUserService.getLoggedPerson().getPersonId();
+        return bookingMapper.toPage(bookingRepository.findByAmenity_Consortium_ConsortiumIdAndResident_PersonId(idConsortium, residentId, page));
+
     }
 
     public List<DateShiftDto> getAvailableDates(Long idAmenity) throws EntityNotFoundException {
