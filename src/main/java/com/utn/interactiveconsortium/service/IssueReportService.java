@@ -56,16 +56,19 @@ public class IssueReportService {
 
     public void deleteIssueReport(Long issueReportId) throws EntityNotFoundException, IssueReportStatusException {
         List<Long> associatedConsortiumIds = loggedUserService.getAssociatedConsortiumIds();
-        if (!associatedConsortiumIds.contains(issueReportId)) {
-            throw new EntityNotFoundException("No se encontro el consorcio");
-        }
 
         IssueReportEntity issueReport = issueReportRepository.findById(issueReportId)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontro el reclamo"));
 
+        if (!associatedConsortiumIds.contains(issueReport.getConsortium().getConsortiumId())) {
+            throw new EntityNotFoundException("No se encontro el consorcio");
+        }
+
         if (issueReport.getStatus() != EIssueReportStatus.PENDING) {
             throw new IssueReportStatusException("No se puede eliminar el reclamo");
         }
+
+        issueReportRepository.delete(issueReport);
     }
 
     public IssueReportDto setIssuerReportToStatusUnderReview(Long issueReportId) throws EntityNotFoundException {
