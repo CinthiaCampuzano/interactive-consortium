@@ -100,7 +100,7 @@ public class BookingService {
         List<BookingEntity> bookingsThisMonth = bookingRepository.findByResidentIdAndAmenityIdAndStartDateBetween(resident.getPersonId(), amenity.getAmenityId(), firstDayOfMonth, lastDayOfMonth);
 
         if (bookingsThisMonth.size() >= amenity.getMaxBookings()) {
-            throw new BookingLimitExceededException("El residente ya ha hecho " + (amenity.getMaxBookings() + 1) + " reservas este mes para este espacio común");
+            throw new BookingLimitExceededException("El residente ya ha hecho " + amenity.getMaxBookings() + " reservas este mes para este espacio común");
         }
 
         List<DateShiftDto> dateShiftDtoList = getAvailableDates(bookingDto.getAmenity().getAmenityId());
