@@ -37,6 +37,7 @@ public class AdministratorService {
         return administratorMapper.toPage(administratorEntityPage);
     }
 
+    @Transactional(rollbackOn = Exception.class)
     public AdministratorDto createAdministrator(AdministratorDto newAdministrator) throws EntityAlreadyExistsException {
         if (administratorRepository.existsByDni(newAdministrator.getDni())) {
             throw new EntityAlreadyExistsException("Ya existe un administrador con ese dni");

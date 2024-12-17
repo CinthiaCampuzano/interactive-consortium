@@ -8,6 +8,7 @@ import com.utn.interactiveconsortium.entity.AdministratorEntity;
 import com.utn.interactiveconsortium.entity.AppUser;
 import com.utn.interactiveconsortium.entity.PersonEntity;
 import com.utn.interactiveconsortium.enums.ERole;
+import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.repository.AppUserRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +52,12 @@ public class AppUserDetailsService implements UserDetailsService {
         return "New user successfully registered";
     }
 
-    public void register(AdministratorEntity administrator) {
+    public void register(AdministratorEntity administrator) throws EntityAlreadyExistsException {
+
+        if (existsByUsername(administrator.getMail())) {
+            throw new EntityAlreadyExistsException("Ya existe un usuario con ese mail");
+        }
+
         var user = new AppUser();
         user.setUsername(administrator.getMail());
         user.setPassword(passwordEncoder.encode(administrator.getDni()));
@@ -61,7 +67,11 @@ public class AppUserDetailsService implements UserDetailsService {
         repository.save(user);
     }
 
-    public void register(PersonEntity person) {
+    public void register(PersonEntity person) throws EntityAlreadyExistsException {
+        if (existsByUsername(person.getMail())) {
+            throw new EntityAlreadyExistsException("Ya existe un usuario con ese mail");
+        }
+
         var user = new AppUser();
         user.setUsername(person.getMail());
         user.setPassword(passwordEncoder.encode(person.getDni()));
@@ -70,6 +80,10 @@ public class AppUserDetailsService implements UserDetailsService {
         user.setPerson(person);
 
         repository.save(user);
+    }
+
+    private boolean existsByUsername(String username) {
+        return repository.existsByUsername(username);
     }
 
     public AppUser findByUsername(String username) throws EntityNotFoundException {

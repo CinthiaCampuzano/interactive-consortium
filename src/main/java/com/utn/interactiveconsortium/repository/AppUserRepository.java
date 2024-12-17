@@ -12,4 +12,7 @@ public interface AppUserRepository extends JpaRepository<AppUser, Integer> {
     Optional<AppUser> findAppUserByUsername(String username);
 
     void deleteByUsername(String username);
+
+    boolean existsByUsername(String username);
+
 }
