@@ -63,6 +63,7 @@ public class IssueReportService {
 
         IssueReportEntity issueReport = issueReportMapper.convertDtoToEntity(issueReportDto);
 
+        issueReport.setPerson(loggedUserService.getLoggedPerson());
         issueReport.setConsortium(consortium);
         issueReport.setStatus(EIssueReportStatus.PENDING);
         issueReport.setCreatedDate(LocalDateTime.now());
