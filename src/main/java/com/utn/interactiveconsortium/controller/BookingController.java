@@ -43,7 +43,7 @@ public class BookingController {
         return bookingService.createBooking(bookingDto);
     }
 
-    @DeleteMapping (value = "{idBooking}")
+    @DeleteMapping (value = "/{idBooking}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_RESIDENT')")
     public void deleteBooking(@PathVariable Long idBooking) throws EntityNotFoundException {
         bookingService.deleteBooking(idBooking);

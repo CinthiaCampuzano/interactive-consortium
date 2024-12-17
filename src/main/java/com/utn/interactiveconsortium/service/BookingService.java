@@ -37,13 +37,13 @@ public class BookingService {
     private final LoggedUserService loggedUserService;
 
     public Page<BookingDto> getAllBookingsForAdmin(Long idConsortium, Pageable page) {
-        return bookingMapper.toPage(bookingRepository.findByAmenity_Consortium_ConsortiumId(idConsortium, page));
+        return bookingMapper.toPage(bookingRepository.findByAmenity_Consortium_ConsortiumId(idConsortium, LocalDate.now(), page));
     }
 
     public Page<BookingDto> getBookingsForResident(Long idConsortium, Pageable page) {
 
         Long residentId = loggedUserService.getLoggedPerson().getPersonId();
-        return bookingMapper.toPage(bookingRepository.findByAmenity_Consortium_ConsortiumIdAndResident_PersonId(idConsortium, residentId, page));
+        return bookingMapper.toPage(bookingRepository.findByAmenity_Consortium_ConsortiumIdAndResident_PersonId(idConsortium, residentId, LocalDate.now(), page));
 
     }
 
@@ -88,6 +88,10 @@ public class BookingService {
 
     public BookingDto createBooking(BookingDto bookingDto) throws BookingNotAvailableException, EntityNotFoundException, BookingLimitExceededException {
 
+        if (!bookingDto.getStartDate().isAfter(LocalDate.now())) {
+            throw new BookingNotAvailableException("La fecha de la reserva debe ser posterior a la fecha actual");
+        }
+
         AmenityEntity amenity = amenityRepository.findById(bookingDto.getAmenity().getAmenityId())
                 .orElseThrow(() -> new EntityNotFoundException("No existe ese espacio comun"));
 
@@ -129,13 +133,15 @@ public class BookingService {
         BookingEntity bookingEntity = bookingRepository.findById(idBooking)
                 .orElseThrow(() -> new EntityNotFoundException("No existe esa reserva"));
 
-        LocalDate now = LocalDate.now();
+//        LocalDate now = LocalDate.now();
+//
+//        if (bookingEntity.getStartDate().equals(now)) {
+//            throw new EntityNotFoundException("No se puede eliminar una reserva en el día de su realización. " +
+//                    "Las reservas solo pueden eliminarse con más de 24 horas de anticipación.");
+//        }
 
-        if (bookingEntity.getStartDate().equals(now)) {
-            throw new EntityNotFoundException("No se puede eliminar una reserva en el día de su realización. " +
-                    "Las reservas solo pueden eliminarse con más de 24 horas de anticipación.");
-        }
         bookingRepository.deleteById(idBooking);
+
     }
 
 }

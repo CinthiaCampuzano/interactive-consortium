@@ -12,9 +12,16 @@ import java.util.List;
 
 public interface BookingRepository extends JpaRepository<BookingEntity, Long> {
 
-    Page<BookingEntity> findByAmenity_Consortium_ConsortiumId(Long consortiumId, Pageable pageable);
+    @Query("SELECT b FROM BookingEntity b " +
+            "WHERE b.amenity.consortium.consortiumId = :consortiumId " +
+            "AND b.startDate >= :startDate")
+    Page<BookingEntity> findByAmenity_Consortium_ConsortiumId(Long consortiumId, LocalDate startDate, Pageable pageable);
 
-    Page<BookingEntity> findByAmenity_Consortium_ConsortiumIdAndResident_PersonId(Long consortiumId, Long residentId, Pageable pageable);
+    @Query("SELECT b FROM BookingEntity b " +
+            "WHERE b.amenity.consortium.consortiumId = :consortiumId " +
+            "AND b.resident.personId = :residentId " +
+            "AND b.startDate >= :startDate")
+    Page<BookingEntity> findByAmenity_Consortium_ConsortiumIdAndResident_PersonId(Long consortiumId, Long residentId, LocalDate startDate,Pageable pageable);
 
     List<BookingEntity> findByAmenity_AmenityId(Long amenityId);
 
