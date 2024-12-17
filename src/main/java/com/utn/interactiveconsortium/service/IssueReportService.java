@@ -54,6 +54,10 @@ public class IssueReportService {
 
 
     public IssueReportDto createIssueReport(IssueReportDto issueReportDto) throws EntityNotFoundException {
+        if (issueReportDto.getIssue().isBlank() || issueReportDto.getSubject().isBlank()) {
+            throw new EntityNotFoundException("El reclamo no puede estar vacio");
+        }
+
         List<Long> associatedConsortiumIds = loggedUserService.getAssociatedConsortiumIds();
         if (!associatedConsortiumIds.contains(issueReportDto.getConsortium().getConsortiumId())) {
             throw new EntityNotFoundException("No se encontro el consorcio");
