@@ -1,6 +1,7 @@
 package com.utn.interactiveconsortium.entity;
 
 import com.utn.interactiveconsortium.enums.ECity;
+import com.utn.interactiveconsortium.enums.EConsortiumType;
 import com.utn.interactiveconsortium.enums.EState;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,6 +30,15 @@ public class ConsortiumEntity {
 
     @Enumerated(EnumType.STRING)
     private EState province;
+
+    @Enumerated(EnumType.STRING)
+    private EConsortiumType consortiumType;
+
+    private int functionalUnits;
+
+    private int floors;
+
+    private int apartmentsPerFloor;
 
     @ManyToOne
     @JoinColumn(name = "administrator_id")

@@ -78,7 +78,7 @@ public class ConsortiumController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_ROOT')")
-    public ConsortiumDto createConsortium(@RequestBody ConsortiumDto newConsortium) throws EntityNotFoundException {
+    public ConsortiumDto createConsortium(@RequestBody ConsortiumDto newConsortium) throws EntityNotFoundException, IllegalArgumentException {
         return consortiumService.createConsortium(newConsortium);
 
     }
