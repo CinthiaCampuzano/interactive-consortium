@@ -1,9 +1,14 @@
 package com.utn.interactiveconsortium.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.utn.interactiveconsortium.dto.DepartmentDto;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.DepartmentEntity;
 import com.utn.interactiveconsortium.entity.PersonEntity;
+import com.utn.interactiveconsortium.enums.EConsortiumType;
+import com.utn.interactiveconsortium.exception.CustomIllegalArgumentException;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.DepartmentMapper;
@@ -65,6 +70,32 @@ public class DepartmentService {
 
         return newDepartmentDto;
     }
+
+    public void massiveDepartmentCreation(ConsortiumEntity consortiumEntity) throws CustomIllegalArgumentException {
+        if (consortiumEntity.getConsortiumType() != EConsortiumType.BUILDING) {
+            throw new IllegalArgumentException("El consorcio debe ser de tipo edificio");
+        }
+
+        List<DepartmentEntity> departments = new ArrayList<>();
+
+        for (int i = 1; i <= consortiumEntity.getFloors(); i++) {
+            for (int j = 1; j <= consortiumEntity.getApartmentsPerFloor(); j++) {
+                DepartmentEntity newDepartment = new DepartmentEntity();
+                newDepartment.setCode(i + getLetterForDepartment(j));
+                newDepartment.setConsortium(consortiumEntity);
+                departments.add(newDepartment);
+            }
+        }
+
+         departmentRepository.saveAll(departments);
+    }
+
+      public String getLetterForDepartment(int number) throws CustomIllegalArgumentException {
+         if (number > 26) {
+               throw new CustomIllegalArgumentException("limite de departamentos por piso alcanzado");
+         }
+         return String.valueOf((char) (number + 64));
+      }
 
     public void updateDepartment(DepartmentDto departmentToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
         boolean departmentExists = departmentRepository.existsById(departmentToUpdate.getDepartmentId());
