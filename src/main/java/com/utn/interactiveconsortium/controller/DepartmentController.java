@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,7 +47,7 @@ public class DepartmentController {
 
     @PutMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
-    public void updateDepartment(@RequestBody DepartmentDto departmentToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
+    public void updateDepartment(@RequestBody @Validated DepartmentDto departmentToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
         departmentService.updateDepartment(departmentToUpdate);
     }
 

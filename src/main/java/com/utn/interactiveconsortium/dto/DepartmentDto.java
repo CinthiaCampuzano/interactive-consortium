@@ -1,5 +1,6 @@
 package com.utn.interactiveconsortium.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 
@@ -8,6 +9,7 @@ import lombok.Data;
 public class DepartmentDto {
     private Long departmentId;
 
+    @NotBlank
     private String code;
 
     private ConsortiumDto consortium;

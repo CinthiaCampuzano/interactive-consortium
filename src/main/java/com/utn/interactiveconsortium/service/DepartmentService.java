@@ -54,10 +54,18 @@ public class DepartmentService {
 
         ConsortiumEntity consortium = consortiumRepository.findById(newDepartment.getConsortium().getConsortiumId())
                 .orElseThrow(() -> new EntityNotFoundException("Consorcio no encontrado"));
-        PersonEntity propietary = personRepository.findById(newDepartment.getPropietary().getPersonId())
-                .orElseThrow(() -> new EntityNotFoundException("Propietario no encontrado"));
-        PersonEntity resident = personRepository.findById(newDepartment.getResident().getPersonId())
-                .orElseThrow(() -> new EntityNotFoundException("Residente no encontrado"));
+
+
+        PersonEntity propietary = (newDepartment.getPropietary() != null && newDepartment.getPropietary().getPersonId() != null)
+                ? personRepository.findById(newDepartment.getPropietary().getPersonId())
+                .orElseThrow(() -> new EntityNotFoundException("Propietario no encontrado"))
+                : null;
+
+
+        PersonEntity resident = (newDepartment.getResident() != null && newDepartment.getResident().getPersonId() != null)
+                ? personRepository.findById(newDepartment.getResident().getPersonId())
+                .orElseThrow(() -> new EntityNotFoundException("Residente no encontrado"))
+                : null;
 
         newDepartmentEntity.setConsortium(consortium);
         newDepartmentEntity.setPropietary(propietary);
@@ -109,27 +117,33 @@ public class DepartmentService {
         boolean sameDepartment = departmentToUpdateEntity.getCode().equals(departmentToUpdate.getCode()) &&
                 departmentToUpdateEntity.getConsortium().getConsortiumId().equals(departmentToUpdate.getConsortium().getConsortiumId());
 
-        if(!sameDepartment){
+        if (!sameDepartment) {
             boolean departmentExistsToUpdate = departmentRepository.existsByCodeAndConsortiumId(
-                    departmentToUpdate.getCode(),departmentToUpdate.getConsortium().getConsortiumId());
+                    departmentToUpdate.getCode(), departmentToUpdate.getConsortium().getConsortiumId());
 
             if (departmentExistsToUpdate) {
                 throw new EntityAlreadyExistsException("Ya existe un departamento en ese piso con ese identificador");
             }
         }
+
         ConsortiumEntity consortium = consortiumRepository.findById(departmentToUpdate.getConsortium().getConsortiumId())
                 .orElseThrow(() -> new EntityNotFoundException("Consorcio no encontrado"));
-        PersonEntity propietary = personRepository.findById(departmentToUpdate.getPropietary().getPersonId())
-                .orElseThrow(() -> new EntityNotFoundException("Propietario no encontrado"));
-        PersonEntity resident = personRepository.findById(departmentToUpdate.getResident().getPersonId())
-                .orElseThrow(() -> new EntityNotFoundException("Residente no encontrado"));
+
+        PersonEntity propietary = (departmentToUpdate.getPropietary() != null && departmentToUpdate.getPropietary().getPersonId() != null)
+                ? personRepository.findById(departmentToUpdate.getPropietary().getPersonId())
+                .orElseThrow(() -> new EntityNotFoundException("Propietario no encontrado"))
+                : null;
+
+        PersonEntity resident = (departmentToUpdate.getResident() != null && departmentToUpdate.getResident().getPersonId() != null)
+                ? personRepository.findById(departmentToUpdate.getResident().getPersonId())
+                .orElseThrow(() -> new EntityNotFoundException("Residente no encontrado"))
+                : null;
 
         departmentToUpdateEntity.setCode(departmentToUpdate.getCode());
         departmentToUpdateEntity.setPropietary(propietary);
         departmentToUpdateEntity.setResident(resident);
 
         departmentRepository.save(departmentToUpdateEntity);
-
     }
 
     public void deleteDepartment(Long idDepartment) throws EntityNotFoundException {
