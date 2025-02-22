@@ -35,4 +35,9 @@ public class RestResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(ex.getMessage());
     }
 
+    @ExceptionHandler(value = { CustomIllegalArgumentException.class})
+    public ResponseEntity<Object> handleIllegalArgumentException(CustomIllegalArgumentException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
 }

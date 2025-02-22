@@ -1,10 +1,9 @@
 package com.utn.interactiveconsortium.controller;
 
 import com.utn.interactiveconsortium.dto.*;
-import com.utn.interactiveconsortium.entity.PersonEntity;
 import com.utn.interactiveconsortium.enums.ECity;
 import com.utn.interactiveconsortium.enums.EState;
-import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
+import com.utn.interactiveconsortium.exception.CustomIllegalArgumentException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.service.ConsortiumService;
 import jakarta.mail.MessagingException;
@@ -78,7 +77,7 @@ public class ConsortiumController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_ROOT')")
-    public ConsortiumDto createConsortium(@RequestBody ConsortiumDto newConsortium) throws EntityNotFoundException {
+    public ConsortiumDto createConsortium(@RequestBody ConsortiumDto newConsortium) throws EntityNotFoundException, CustomIllegalArgumentException {
         return consortiumService.createConsortium(newConsortium);
 
     }

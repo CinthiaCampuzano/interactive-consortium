@@ -7,7 +7,9 @@ import com.utn.interactiveconsortium.entity.AdministratorEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.PersonEntity;
 import com.utn.interactiveconsortium.enums.ECity;
+import com.utn.interactiveconsortium.enums.EConsortiumType;
 import com.utn.interactiveconsortium.enums.EState;
+import com.utn.interactiveconsortium.exception.CustomIllegalArgumentException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.ConsortiumMapper;
 import com.utn.interactiveconsortium.mapper.PersonMapper;
@@ -15,8 +17,9 @@ import com.utn.interactiveconsortium.repository.AdministratorRepository;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.repository.PersonRepository;
 import com.utn.interactiveconsortium.util.MinioUtils;
-import io.minio.PutObjectArgs;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.data.domain.Page;
@@ -48,6 +51,8 @@ public class ConsortiumService {
     private final MinioConfig minioConfig;
 
     private final MinioUtils minioUtils;
+
+    private final DepartmentService departmentService;
 
     public Page<ConsortiumDto> getConsortiums(Pageable page){
         return consortiumMapper.toPage(consortiumRepository.findAll(page));
@@ -94,21 +99,66 @@ public class ConsortiumService {
                 .collect(Collectors.toList());
     }
 
-    public ConsortiumDto createConsortium(ConsortiumDto newConsortium) throws EntityNotFoundException {
+//    public ConsortiumDto createConsortium(ConsortiumDto newConsortium) throws EntityNotFoundException {
+//
+//        ConsortiumEntity newConsortiumEntity = consortiumMapper.convertDtoToEntity(newConsortium);
+//
+//        AdministratorEntity administrator = administratorRepository.findById(newConsortium.getAdministrator().getAdministratorId())
+//                .orElseThrow(() -> new EntityNotFoundException("No se encontro el administrador"));
+//
+//        newConsortiumEntity.setAdministrator(administrator);
+//
+//        consortiumRepository.save(newConsortiumEntity);
+//
+//        ConsortiumDto newConsortiumDto = consortiumMapper.convertEntityToDto(newConsortiumEntity);
+//
+//        return newConsortiumDto;
+//    }
+
+    @Transactional(rollbackOn = Exception.class)
+    public ConsortiumDto createConsortium(ConsortiumDto newConsortium)
+          throws EntityNotFoundException, IllegalArgumentException, CustomIllegalArgumentException {
+
+
+        if (newConsortium.getConsortiumType() == null) {
+            throw new IllegalArgumentException("El tipo de consorcio (consortiumType) es obligatorio.");
+        }
+
+        if (newConsortium.getFunctionalUnits() <= 0) {
+            throw new IllegalArgumentException("El número de unidades funcionales (functionalUnits) debe ser mayor a 0.");
+        }
+
+        if (newConsortium.getConsortiumType() == EConsortiumType.BUILDING) {
+            if (newConsortium.getFloors() <= 0) {
+                throw new IllegalArgumentException("El número de pisos debe ser mayor a 0 ");
+            }
+            if (newConsortium.getApartmentsPerFloor() <= 0) {
+                throw new IllegalArgumentException("El número de departamentos por piso debe ser mayor a 0 ");
+            }
+        } else {
+
+            newConsortium.setFloors(0);
+            newConsortium.setApartmentsPerFloor(0);
+        }
 
         ConsortiumEntity newConsortiumEntity = consortiumMapper.convertDtoToEntity(newConsortium);
 
         AdministratorEntity administrator = administratorRepository.findById(newConsortium.getAdministrator().getAdministratorId())
-                .orElseThrow(() -> new EntityNotFoundException("No se encontro el administrador"));
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el administrador"));
 
         newConsortiumEntity.setAdministrator(administrator);
 
-        consortiumRepository.save(newConsortiumEntity);
+        ConsortiumEntity savedConsortium = consortiumRepository.save(newConsortiumEntity);
+
+        if (savedConsortium.getConsortiumType() == EConsortiumType.BUILDING) {
+            departmentService.massiveDepartmentCreation(savedConsortium);
+        }
 
         ConsortiumDto newConsortiumDto = consortiumMapper.convertEntityToDto(newConsortiumEntity);
-
         return newConsortiumDto;
     }
+
+
 
     public void updateConsortium(ConsortiumDto consortiumToUpdate) throws EntityNotFoundException {
 
