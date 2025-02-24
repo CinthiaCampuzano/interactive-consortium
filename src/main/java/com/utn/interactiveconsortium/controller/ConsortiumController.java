@@ -1,23 +1,33 @@
 package com.utn.interactiveconsortium.controller;
 
-import com.utn.interactiveconsortium.dto.*;
-import com.utn.interactiveconsortium.enums.ECity;
-import com.utn.interactiveconsortium.enums.EState;
-import com.utn.interactiveconsortium.exception.CustomIllegalArgumentException;
-import com.utn.interactiveconsortium.exception.EntityNotFoundException;
-import com.utn.interactiveconsortium.service.ConsortiumService;
+import java.io.IOException;
+import java.util.List;
+
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import com.utn.interactiveconsortium.dto.ConsortiumDto;
+import com.utn.interactiveconsortium.dto.PersonDto;
+import com.utn.interactiveconsortium.exception.CustomIllegalArgumentException;
+import com.utn.interactiveconsortium.exception.EntityNotFoundException;
+import com.utn.interactiveconsortium.service.ConsortiumService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping(value = "consortiums")
@@ -123,24 +133,6 @@ public class ConsortiumController {
             HttpServletResponse response
     ) throws EntityNotFoundException, MessagingException, IOException {
         consortiumService.downloadImage(consortiumId, response);;
-    }
-
-    @GetMapping("/states")
-    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
-    public List<StateDto> getStates() {
-        return Arrays.stream(EState.values())
-                .map(state -> new StateDto(state.name(), state.getDisplayName()))
-                .toList();
-    }
-
-    @GetMapping("/states/{stateId}/cities")
-    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
-    public List<CityDto> getCitiesByState(@PathVariable String stateId) {
-        EState state = EState.valueOf(stateId);
-        return Arrays.stream(ECity.values())
-                .filter(city -> city.getState() == state)
-                .map(city -> new CityDto(city.name(), city.getDisplayName()))
-                .toList();
     }
 
 }
