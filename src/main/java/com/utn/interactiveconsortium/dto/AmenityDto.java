@@ -13,6 +13,8 @@ public class AmenityDto {
 
     private Integer maxBookings;
 
+    private Integer costOfUse;
+
     private ConsortiumDto consortium;
 
     private String imagePath;
