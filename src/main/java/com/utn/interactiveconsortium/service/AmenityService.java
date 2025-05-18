@@ -92,6 +92,7 @@ public class AmenityService {
 
         amenityToUpdateEntity.setName(amenityToUpdate.getName());
         amenityToUpdateEntity.setMaxBookings(amenityToUpdate.getMaxBookings());
+        amenityToUpdateEntity.setCostOfUse(amenityToUpdate.getCostOfUse());
 
 
         amenityRepository.save(amenityToUpdateEntity);

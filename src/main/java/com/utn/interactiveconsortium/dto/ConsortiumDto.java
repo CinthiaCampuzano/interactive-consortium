@@ -14,9 +14,9 @@ public class ConsortiumDto {
 
     private String address;
 
-    private CityDto city;
+    private String city;
 
-    private StateDto province;
+    private String province;
 
     private EConsortiumType consortiumType;
 

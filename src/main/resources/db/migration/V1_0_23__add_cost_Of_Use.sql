@@ -1,0 +1,3 @@
+ALTER TABLE amenity
+
+    ADD COLUMN cost_Of_Use INT NOT NULL DEFAULT 0;

@@ -1,14 +1,26 @@
 package com.utn.interactiveconsortium.service;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
+
+import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.utn.interactiveconsortium.config.MinioConfig;
 import com.utn.interactiveconsortium.dto.ConsortiumDto;
 import com.utn.interactiveconsortium.dto.PersonDto;
 import com.utn.interactiveconsortium.entity.AdministratorEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.PersonEntity;
-import com.utn.interactiveconsortium.enums.ECity;
 import com.utn.interactiveconsortium.enums.EConsortiumType;
-import com.utn.interactiveconsortium.enums.EState;
 import com.utn.interactiveconsortium.exception.CustomIllegalArgumentException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.ConsortiumMapper;
@@ -17,20 +29,8 @@ import com.utn.interactiveconsortium.repository.AdministratorRepository;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.repository.PersonRepository;
 import com.utn.interactiveconsortium.util.MinioUtils;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -172,8 +172,8 @@ public class ConsortiumService {
 
         consortiumToUpdateEntity.setName(consortiumToUpdate.getName());
         consortiumToUpdateEntity.setAddress(consortiumToUpdate.getAddress());
-        consortiumToUpdateEntity.setCity(ECity.valueOf(consortiumToUpdate.getCity().getId()));
-        consortiumToUpdateEntity.setProvince(EState.valueOf(consortiumToUpdate.getProvince().getId()));
+        consortiumToUpdateEntity.setCity(consortiumToUpdate.getCity());
+        consortiumToUpdateEntity.setProvince(consortiumToUpdate.getProvince());
         consortiumToUpdateEntity.setAdministrator(administratorRepository.findById(consortiumToUpdate.getAdministrator().getAdministratorId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontro el administrador")));
 

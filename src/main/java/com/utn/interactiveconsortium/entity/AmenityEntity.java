@@ -22,6 +22,8 @@ public class AmenityEntity {
 
     private Integer maxBookings;
 
+    private Integer costOfUse;
+
 
     @ManyToOne
     @JoinColumn(name = "consortium_id")
