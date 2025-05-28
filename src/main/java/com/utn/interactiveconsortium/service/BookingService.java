@@ -4,6 +4,7 @@ import com.utn.interactiveconsortium.dto.BookingDto;
 import com.utn.interactiveconsortium.dto.DateShiftDto;
 import com.utn.interactiveconsortium.entity.AmenityEntity;
 import com.utn.interactiveconsortium.entity.BookingEntity;
+import com.utn.interactiveconsortium.entity.DepartmentEntity;
 import com.utn.interactiveconsortium.entity.PersonEntity;
 import com.utn.interactiveconsortium.enums.Shift;
 import com.utn.interactiveconsortium.exception.BookingLimitExceededException;
@@ -97,6 +98,15 @@ public class BookingService {
 
         PersonEntity resident = loggedUserService.getLoggedPerson();
 
+        DepartmentEntity department = resident.getResidentDepartments().stream()
+              .filter(dpto -> dpto.getDepartmentId().equals(bookingDto.getDepartment().getDepartmentId()))
+              .findFirst()
+              .orElseThrow(() -> new EntityNotFoundException("El departamento no pertenece al residente"));
+
+        if (!department.getActive()) {
+            throw new EntityNotFoundException("El departamento no está activo");
+        }
+
         LocalDate now = LocalDate.now();
         LocalDate firstDayOfMonth = now.withDayOfMonth(1);
         LocalDate lastDayOfMonth = now.withDayOfMonth(now.lengthOfMonth());
@@ -119,6 +129,7 @@ public class BookingService {
 
         bookingEntity.setAmenity(amenity);
         bookingEntity.setResident(resident);
+        bookingEntity.setDepartment(department);
 
         bookingRepository.save(bookingEntity);
 

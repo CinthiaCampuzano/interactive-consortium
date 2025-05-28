@@ -33,6 +33,10 @@ public class BookingEntity {
     @JoinColumn(name = "resident_id")
     private PersonEntity resident;
 
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private DepartmentEntity department;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

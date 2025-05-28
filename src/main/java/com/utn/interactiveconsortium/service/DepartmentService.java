@@ -28,18 +28,14 @@ public class DepartmentService {
     private final PersonRepository personRepository;
     private final DepartmentMapper departmentMapper;
 
-//    public Page<DepartmentDto> getDepartments(Pageable page){
-//        return departmentMapper.toPage(departmentRepository.findAll(page));
-//    }
-
     public Page<DepartmentDto> getDepartmentsByConsortium(Long consortiumId, Pageable pageable) {
         Page<DepartmentEntity> departmentEntities = departmentRepository.findByConsortium_ConsortiumId(consortiumId, pageable);
         return departmentMapper.toPage(departmentEntities);
     }
 
 
-    public Page<DepartmentDto> getDepartment(Long idConsortium, String code, String ownerNameOrLastName, String residentNameOrLastName, Pageable page) {
-        return departmentMapper.toPage(departmentRepository.findDepartmentByFilters(idConsortium, code, ownerNameOrLastName, residentNameOrLastName,  page));
+    public Page<DepartmentDto> getDepartment(Long idConsortium, String code, String ownerNameOrLastName, String residentNameOrLastName, Boolean active, Pageable page) {
+        return departmentMapper.toPage(departmentRepository.findDepartmentByFilters(idConsortium, code, ownerNameOrLastName, residentNameOrLastName, active, page));
     }
 
     public DepartmentDto createDepartment(DepartmentDto newDepartment) throws EntityAlreadyExistsException, EntityNotFoundException {

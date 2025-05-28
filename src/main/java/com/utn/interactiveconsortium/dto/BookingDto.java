@@ -21,4 +21,7 @@ public class BookingDto {
     private AmenityDto amenity;
 
     private PersonDto resident;
+
+    private DepartmentDto department;
+
 }

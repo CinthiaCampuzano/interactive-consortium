@@ -34,8 +34,9 @@ public class DepartmentController {
             @RequestParam(required = false) String code,
             @RequestParam(required = false) String ownerNameOrLastName,
             @RequestParam(required = false) String residentNameOrLastName,
+            @RequestParam(required = false) Boolean active,
             Pageable page) {
-        return departmentService.getDepartment(idConsortium, code, ownerNameOrLastName, residentNameOrLastName, page);
+        return departmentService.getDepartment(idConsortium, code, ownerNameOrLastName, residentNameOrLastName, active, page);
     }
 
     @PostMapping
