@@ -1,0 +1,6 @@
+ALTER TABLE department
+    ADD COLUMN active BOOLEAN NOT NULL DEFAULT TRUE;
+
+ALTER TABLE booking
+    ADD COLUMN department_id BIGINT UNSIGNED NOT NULL
+        REFERENCES department(department_id) ON DELETE CASCADE;

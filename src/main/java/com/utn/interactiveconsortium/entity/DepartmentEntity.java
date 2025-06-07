@@ -35,4 +35,6 @@ public class DepartmentEntity {
     @OneToMany(mappedBy = "department")
     private List<MaintenanceFeePaymentEntity> maintenanceFeePayments;
 
+    private Boolean active;
+
 }

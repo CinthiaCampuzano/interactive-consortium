@@ -28,18 +28,14 @@ public class DepartmentService {
     private final PersonRepository personRepository;
     private final DepartmentMapper departmentMapper;
 
-//    public Page<DepartmentDto> getDepartments(Pageable page){
-//        return departmentMapper.toPage(departmentRepository.findAll(page));
-//    }
-
     public Page<DepartmentDto> getDepartmentsByConsortium(Long consortiumId, Pageable pageable) {
         Page<DepartmentEntity> departmentEntities = departmentRepository.findByConsortium_ConsortiumId(consortiumId, pageable);
         return departmentMapper.toPage(departmentEntities);
     }
 
 
-    public Page<DepartmentDto> getDepartment(Long idConsortium, String code, String ownerNameOrLastName, String residentNameOrLastName, Pageable page) {
-        return departmentMapper.toPage(departmentRepository.findDepartmentByFilters(idConsortium, code, ownerNameOrLastName, residentNameOrLastName,  page));
+    public Page<DepartmentDto> getDepartment(Long idConsortium, String code, String ownerNameOrLastName, String residentNameOrLastName, Boolean active, Pageable page) {
+        return departmentMapper.toPage(departmentRepository.findDepartmentByFilters(idConsortium, code, ownerNameOrLastName, residentNameOrLastName, active, page));
     }
 
     public DepartmentDto createDepartment(DepartmentDto newDepartment) throws EntityAlreadyExistsException, EntityNotFoundException {
@@ -70,7 +66,7 @@ public class DepartmentService {
         newDepartmentEntity.setConsortium(consortium);
         newDepartmentEntity.setPropietary(propietary);
         newDepartmentEntity.setResident(resident);
-
+        newDepartmentEntity.setActive(true);
 
         departmentRepository.save(newDepartmentEntity);
 
@@ -142,6 +138,7 @@ public class DepartmentService {
         departmentToUpdateEntity.setCode(departmentToUpdate.getCode());
         departmentToUpdateEntity.setPropietary(propietary);
         departmentToUpdateEntity.setResident(resident);
+        departmentToUpdateEntity.setActive(departmentToUpdate.getActive());
 
         departmentRepository.save(departmentToUpdateEntity);
     }

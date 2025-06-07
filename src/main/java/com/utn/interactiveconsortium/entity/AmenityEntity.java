@@ -24,7 +24,6 @@ public class AmenityEntity {
 
     private Integer costOfUse;
 
-
     @ManyToOne
     @JoinColumn(name = "consortium_id")
     private ConsortiumEntity consortium;

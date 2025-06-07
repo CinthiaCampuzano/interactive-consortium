@@ -1,6 +1,8 @@
 package com.utn.interactiveconsortium.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,5 +19,8 @@ public class DepartmentDto {
     private PersonDto propietary;
 
     private PersonDto resident;
+
+    @NotNull
+    private Boolean active;
 
 }

@@ -24,12 +24,14 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, Lo
             "WHERE c.consortiumId = :idConsortium " +
             "AND (:code IS NULL OR d.code LIKE %:code%) " +
             "AND (:ownerNameOrLastName IS NULL OR (p.name LIKE %:ownerNameOrLastName% OR p.lastName LIKE %:ownerNameOrLastName%)) " +
-            "AND (:residentNameOrLastName IS NULL OR (r.name LIKE %:residentNameOrLastName% OR r.lastName LIKE %:residentNameOrLastName%))")
+            "AND (:residentNameOrLastName IS NULL OR (r.name LIKE %:residentNameOrLastName% OR r.lastName LIKE %:residentNameOrLastName%))" +
+            "AND (:active IS NULL OR d.active = :active)")
     Page<DepartmentEntity> findDepartmentByFilters(
             @Param("idConsortium") Long idConsortium,
             @Param("code") String code,
             @Param("ownerNameOrLastName") String ownerNameOrLastName,
             @Param("residentNameOrLastName") String residentNameOrLastName,
+            @Param("active") Boolean active,
             Pageable page);
 
     Page<DepartmentEntity> findByConsortium_ConsortiumId(Long consortiumId, Pageable pageable);
