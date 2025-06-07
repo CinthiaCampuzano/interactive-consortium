@@ -22,7 +22,7 @@ public class DepartmentController {
     private final DepartmentService departmentService;
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN', 'ROLE_RESIDENT')")
     public Page<DepartmentDto> getDepartmentsByConsortium(@RequestParam Long consortiumId, Pageable page) {
         return departmentService.getDepartmentsByConsortium(consortiumId, page);
     }

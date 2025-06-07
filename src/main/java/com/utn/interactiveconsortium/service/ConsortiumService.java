@@ -171,6 +171,7 @@ public class ConsortiumService {
         ConsortiumEntity consortiumToUpdateEntity = consortiumRepository.findById(consortiumToUpdate.getConsortiumId()).get();
 
         consortiumToUpdateEntity.setName(consortiumToUpdate.getName());
+        consortiumToUpdateEntity.setFunctionalUnits(consortiumToUpdate.getFunctionalUnits());
         consortiumToUpdateEntity.setAddress(consortiumToUpdate.getAddress());
         consortiumToUpdateEntity.setCity(consortiumToUpdate.getCity());
         consortiumToUpdateEntity.setProvince(consortiumToUpdate.getProvince());

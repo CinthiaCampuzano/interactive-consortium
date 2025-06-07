@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -87,6 +88,7 @@ public class BookingService {
         return datesShiftsInRange;
     }
 
+    @Transactional
     public BookingDto createBooking(BookingDto bookingDto) throws BookingNotAvailableException, EntityNotFoundException, BookingLimitExceededException {
 
         if (!bookingDto.getStartDate().isAfter(LocalDate.now())) {
@@ -96,12 +98,13 @@ public class BookingService {
         AmenityEntity amenity = amenityRepository.findById(bookingDto.getAmenity().getAmenityId())
                 .orElseThrow(() -> new EntityNotFoundException("No existe ese espacio comun"));
 
-        PersonEntity resident = loggedUserService.getLoggedPerson();
+        PersonEntity loggedPerson = loggedUserService.getLoggedPerson();
 
-        DepartmentEntity department = resident.getResidentDepartments().stream()
-              .filter(dpto -> dpto.getDepartmentId().equals(bookingDto.getDepartment().getDepartmentId()))
-              .findFirst()
-              .orElseThrow(() -> new EntityNotFoundException("El departamento no pertenece al residente"));
+        DepartmentEntity department = amenity.getConsortium().getDepartments().stream()
+                .filter(aDepartment -> aDepartment.getDepartmentId().equals(bookingDto.getDepartment().getDepartmentId()))
+                .filter(aDepartment -> aDepartment.getResident().getPersonId().equals(loggedPerson.getPersonId()))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("El departamento no pertenece al residente"));
 
         if (!department.getActive()) {
             throw new EntityNotFoundException("El departamento no está activo");
@@ -111,7 +114,7 @@ public class BookingService {
         LocalDate firstDayOfMonth = now.withDayOfMonth(1);
         LocalDate lastDayOfMonth = now.withDayOfMonth(now.lengthOfMonth());
 
-        List<BookingEntity> bookingsThisMonth = bookingRepository.findByResidentIdAndAmenityIdAndStartDateBetween(resident.getPersonId(), amenity.getAmenityId(), firstDayOfMonth, lastDayOfMonth);
+        List<BookingEntity> bookingsThisMonth = bookingRepository.findByResidentIdAndAmenityIdAndStartDateBetween(loggedPerson.getPersonId(), amenity.getAmenityId(), firstDayOfMonth, lastDayOfMonth);
 
         if (bookingsThisMonth.size() >= amenity.getMaxBookings()) {
             throw new BookingLimitExceededException("El residente ya ha hecho " + amenity.getMaxBookings() + " reservas este mes para este espacio común");
@@ -128,7 +131,7 @@ public class BookingService {
         BookingEntity bookingEntity = bookingMapper.convertDtoToEntity(bookingDto);
 
         bookingEntity.setAmenity(amenity);
-        bookingEntity.setResident(resident);
+        bookingEntity.setResident(loggedPerson);
         bookingEntity.setDepartment(department);
 
         bookingRepository.save(bookingEntity);

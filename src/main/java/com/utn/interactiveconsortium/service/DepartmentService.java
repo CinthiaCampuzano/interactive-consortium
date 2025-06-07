@@ -66,7 +66,7 @@ public class DepartmentService {
         newDepartmentEntity.setConsortium(consortium);
         newDepartmentEntity.setPropietary(propietary);
         newDepartmentEntity.setResident(resident);
-
+        newDepartmentEntity.setActive(true);
 
         departmentRepository.save(newDepartmentEntity);
 
@@ -138,6 +138,7 @@ public class DepartmentService {
         departmentToUpdateEntity.setCode(departmentToUpdate.getCode());
         departmentToUpdateEntity.setPropietary(propietary);
         departmentToUpdateEntity.setResident(resident);
+        departmentToUpdateEntity.setActive(departmentToUpdate.getActive());
 
         departmentRepository.save(departmentToUpdateEntity);
     }
