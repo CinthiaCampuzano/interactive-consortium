@@ -2,7 +2,6 @@ package com.utn.interactiveconsortium.dto;
 
 import java.math.BigDecimal;
 
-import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

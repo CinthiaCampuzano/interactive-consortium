@@ -1,8 +1,11 @@
 package com.utn.interactiveconsortium.batch.steps;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
@@ -13,7 +16,14 @@ import com.utn.interactiveconsortium.config.MinioConfig;
 import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodItemEntity;
 import com.utn.interactiveconsortium.entity.DepartmentEntity;
+import com.utn.interactiveconsortium.entity.DepartmentFeeEntity;
+import com.utn.interactiveconsortium.entity.DepartmentFeeItemEntity;
+import com.utn.interactiveconsortium.enums.EConsortiumFeeDistributionType;
+import com.utn.interactiveconsortium.enums.EPaymentStatus;
 import com.utn.interactiveconsortium.repository.ConsortiumFeePeriodRepository;
+import com.utn.interactiveconsortium.repository.DepartmentFeeItemRepository;
+import com.utn.interactiveconsortium.repository.DepartmentFeeRepository;
+import com.utn.interactiveconsortium.repository.DepartmentRepository;
 import com.utn.interactiveconsortium.service.PdfGenerationService;
 import com.utn.interactiveconsortium.util.MinioUtils;
 
@@ -27,11 +37,15 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
 
    private final ConsortiumFeePeriodRepository consortiumFeePeriodRepository;
 
+   private final DepartmentFeeRepository departmentFeeRepository;
+
    private final PdfGenerationService pdfGenerationService;
 
    private final MinioUtils minioUtils;
 
    private final MinioConfig minioConfig;
+
+   private final DepartmentRepository departmentRepository;
 
    //TODO falta control para no generar dos veces y se necesita otro solo para regenerar
    @Override
@@ -61,8 +75,55 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
          consortiumFeePeriodRepository.save(consortiumFeePeriod);
          log.debug("Period saved successfully: {}", consortiumFeePeriod.getConsortiumFeePeriodId());
 
-         // La lógica para generar DepartmentFee y DepartmentFeeItem iría aquí
-         // ...
+
+         // La lógica para generar DepartmentFee y DepartmentFeeItem
+         List<DepartmentEntity> activeDepartments = consortiumFeePeriod
+               .getConsortium()
+               .getDepartments()
+               .stream()
+               .filter(DepartmentEntity::getActive)
+               .toList();
+
+         LocalDate issueDate = consortiumFeePeriod.getGenerationDate();
+         LocalDate dueDate = consortiumFeePeriod.getDueDate();
+
+         int numActiveDepartments = activeDepartments.size();
+         List<DepartmentFeeEntity> departmentFeeOfPeriod = new ArrayList<>(numActiveDepartments);
+         for (DepartmentEntity department : activeDepartments) {
+            List<DepartmentFeeItemEntity> departmentFeeItems = new ArrayList<>();
+            DepartmentFeeEntity departmentFee = DepartmentFeeEntity
+                  .builder()
+                  .consortiumFeePeriod(consortiumFeePeriod)
+                  .department(department)
+                  .totalAmount(BigDecimal.ZERO)
+                  .dueAmount(BigDecimal.ZERO)
+                  .paidAmount(BigDecimal.ZERO)
+                  .paymentStatus(EPaymentStatus.PENDING)
+                  .issueDate(issueDate)
+                  .dueDate(dueDate)
+                  .build();
+
+            BigDecimal departmentAmount = BigDecimal.ZERO;
+
+            for (ConsortiumFeePeriodItemEntity item : periodItems) {
+               BigDecimal amount = calculateItemAmount(item.getAmount(), numActiveDepartments, item.getDistributionType());
+               departmentAmount = departmentAmount.add(amount);
+               DepartmentFeeItemEntity departmentFeeItem = DepartmentFeeItemEntity
+                     .builder()
+                     .amount(amount)
+                     .departmentFee(departmentFee)
+                     .consortiumFeePeriodItem(item)
+                     .build();
+               departmentFeeItems.add(departmentFeeItem);
+            }
+
+            departmentFee.setDepartmentFeeItems(departmentFeeItems);
+            departmentFee.setTotalAmount(departmentAmount);
+            departmentFeeOfPeriod.add(departmentFee);
+         }
+
+         departmentFeeRepository.saveAll(departmentFeeOfPeriod);
+
          //TODO validar que esto si obtenga los departamentos y luego generar los DepartmentFee y DepartmentFeeItem
 
       }
@@ -75,7 +136,14 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
             date.getYear(),
             date.getMonthValue(),
             period.getConsortium().getConsortiumId(),
-            date.toEpochDay() // Para un nombre único
+            date.toEpochDay()
       );
+   }
+
+   private BigDecimal calculateItemAmount(BigDecimal amount, Integer numberOfDepartments, EConsortiumFeeDistributionType distributionType) {
+      return switch (distributionType) {
+         case EQUAL_SPLIT -> amount.divide(new BigDecimal(numberOfDepartments), 2, BigDecimal.ROUND_HALF_UP);
+         default -> amount;
+      };
    }
 }

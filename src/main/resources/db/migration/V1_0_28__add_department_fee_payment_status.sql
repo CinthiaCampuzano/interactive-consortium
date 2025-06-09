@@ -1,0 +1,2 @@
+ALTER TABLE department_fee
+    ADD COLUMN payment_status VARCHAR(50) NOT NULL DEFAULT 'PENDING';

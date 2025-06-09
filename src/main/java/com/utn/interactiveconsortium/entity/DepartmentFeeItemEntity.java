@@ -6,10 +6,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
-import com.utn.interactiveconsortium.enums.EConsortiumFeeConceptType;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,9 +30,11 @@ public class DepartmentFeeItemEntity {
    private Long departmentFeeItemId;
 
    @ManyToOne
+   @JoinColumn(name = "department_fee_id", nullable = false)
    private DepartmentFeeEntity departmentFee;
 
    @ManyToOne
+   @JoinColumn(name = "consortium_fee_period_item_id", nullable = false)
    private ConsortiumFeePeriodItemEntity consortiumFeePeriodItem;
 
    private BigDecimal proportional;

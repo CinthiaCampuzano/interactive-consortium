@@ -36,4 +36,12 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, Lo
 
     Page<DepartmentEntity> findByConsortium_ConsortiumId(Long consortiumId, Pageable pageable);
 
+    @Query("""
+          SELECT COUNT(department.departmentId)
+          FROM DepartmentEntity department
+          WHERE department.active = TRUE
+          AND department.consortium.consortiumId = :consortiumId
+          """)
+    Integer getNumberOfActiveDepartmentsByConsortiumId(Long consortiumId);
+
 }

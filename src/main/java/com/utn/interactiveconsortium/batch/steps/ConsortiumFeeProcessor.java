@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
@@ -57,15 +56,18 @@ public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumEntity, C
       return consortiumFeeConcepts
             .stream()
             .map(
-                  concept -> ConsortiumFeePeriodItemEntity.builder()
-                        .consortiumFeePeriod(consortiumFeePeriod)
-                        .name(concept.getName())
-                        .description(concept.getDescription())
-                        .amount(concept.getDefaultAmount())
-                        .conceptType(concept.getConceptType())
-                        .feeType(concept.getFeeType())
-                        .distributionType(concept.getDistributionType())
-                        .build()
+                  concept -> {
+                     return ConsortiumFeePeriodItemEntity
+                           .builder()
+                           .consortiumFeePeriod(consortiumFeePeriod)
+                           .name(concept.getName())
+                           .description(concept.getDescription())
+                           .amount(concept.getDefaultAmount())
+                           .conceptType(concept.getConceptType())
+                           .feeType(concept.getFeeType())
+                           .distributionType(concept.getDistributionType())
+                           .build();
+                  }
             )
             .toList();
    }
