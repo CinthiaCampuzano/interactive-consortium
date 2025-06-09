@@ -25,11 +25,7 @@ public class ConsortiumFeeScheduler {
    @Qualifier("consortiumFeeJob") // Asegúrate que el nombre coincida con el bean del Job
    private final Job consortiumFeeJob;
 
-   // Ejemplo: Ejecutar todos los días a la 1 AM
-   // Puedes ajustar la expresión cron según tus necesidades.
-   // "0 0 1 * * ?" -> Todos los días a la 1:00 AM
-   // "*/30 * * * * ?" -> Cada 30 segundos (para pruebas)
-   @Scheduled(cron = "0 */2 * * * ?")
+//   @Scheduled(cron = "0 */2 * * * ?")
    public void runConsortiumFeeJob() {
       try {
          //TODO agregar el periodo

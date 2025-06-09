@@ -14,6 +14,7 @@ public interface ConsortiumFeePeriodRepository extends JpaRepository<ConsortiumF
                SELECT new com.utn.interactiveconsortium.dto.ConsortiumFeePeriodDto(cp.consortiumFeePeriodId, cp.periodDate, cp.generationDate, cp.dueDate, cp.feePeriodStatus, cp.totalAmount, null, cp.pdfFilePath)
                FROM ConsortiumFeePeriodEntity cp
                WHERE (:consortiumId IS NULL OR cp.consortium.consortiumId = :consortiumId)
+               ORDER BY cp.periodDate DESC 
          """)
    Page<ConsortiumFeePeriodDto> queryBy(Long consortiumId, Pageable page);
 }
