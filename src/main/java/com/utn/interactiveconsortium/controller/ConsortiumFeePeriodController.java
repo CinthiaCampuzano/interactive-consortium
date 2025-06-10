@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,6 +41,13 @@ public class ConsortiumFeePeriodController {
    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
    public void downloadMaintenanceFee(@PathVariable Long feePeriodId,  HttpServletResponse response) throws EntityNotFoundException, IOException {
       consortiumFeePeriodService.downloadFeePeriod(feePeriodId, response);
+   }
+
+   @PutMapping("/{feePeriodId}")
+   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+   public ConsortiumFeePeriodDto updateConsortiumFeePeriod(@PathVariable Long feePeriodId, @RequestBody ConsortiumFeePeriodDto dto)
+         throws EntityNotFoundException {
+      return consortiumFeePeriodService.updateConsortiumFeePeriod(feePeriodId, dto);
    }
 
 }

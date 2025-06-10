@@ -11,7 +11,7 @@ import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodEntity;
 public interface ConsortiumFeePeriodRepository extends JpaRepository<ConsortiumFeePeriodEntity, Long> {
 
    @Query("""
-               SELECT new com.utn.interactiveconsortium.dto.ConsortiumFeePeriodDto(cp.consortiumFeePeriodId, cp.periodDate, cp.generationDate, cp.dueDate, cp.feePeriodStatus, cp.totalAmount, null, cp.pdfFilePath)
+               SELECT new com.utn.interactiveconsortium.dto.ConsortiumFeePeriodDto(cp.consortiumFeePeriodId, cp.periodDate, cp.generationDate, cp.dueDate, cp.feePeriodStatus, cp.totalAmount, cp.sendByEmail, cp.notes, cp.pdfFilePath)
                FROM ConsortiumFeePeriodEntity cp
                WHERE (:consortiumId IS NULL OR cp.consortium.consortiumId = :consortiumId)
                ORDER BY cp.periodDate DESC 

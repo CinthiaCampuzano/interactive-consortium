@@ -52,6 +52,8 @@ public class ConsortiumFeePeriodEntity {
 
    private BigDecimal totalAmount;
 
+   private boolean sendByEmail;
+
    private String notes;
 
    private String pdfFilePath;
