@@ -22,7 +22,7 @@ public class ConsortiumFeeScheduler {
 
    private final JobLauncher jobLauncher;
 
-   @Qualifier("consortiumFeeJob") // Asegúrate que el nombre coincida con el bean del Job
+   @Qualifier("consortiumFeeJob")
    private final Job consortiumFeeJob;
 
 //   @Scheduled(cron = "0 */2 * * * ?")

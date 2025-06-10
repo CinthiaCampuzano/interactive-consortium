@@ -5,13 +5,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
 import com.utn.interactiveconsortium.batch.wrapper.ConsortiumFeeWrapper;
+import com.utn.interactiveconsortium.batch.wrapper.JasperWrapper;
 import com.utn.interactiveconsortium.config.MinioConfig;
 import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodItemEntity;
@@ -21,7 +21,6 @@ import com.utn.interactiveconsortium.entity.DepartmentFeeItemEntity;
 import com.utn.interactiveconsortium.enums.EConsortiumFeeDistributionType;
 import com.utn.interactiveconsortium.enums.EPaymentStatus;
 import com.utn.interactiveconsortium.repository.ConsortiumFeePeriodRepository;
-import com.utn.interactiveconsortium.repository.DepartmentFeeItemRepository;
 import com.utn.interactiveconsortium.repository.DepartmentFeeRepository;
 import com.utn.interactiveconsortium.repository.DepartmentRepository;
 import com.utn.interactiveconsortium.service.PdfGenerationService;
@@ -55,21 +54,6 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
          ConsortiumFeePeriodEntity consortiumFeePeriod = wrapper.getConsortiumFeePeriod();
          List<ConsortiumFeePeriodItemEntity> periodItems = wrapper.getPeriodConcepts();
          consortiumFeePeriod.setFeePeriodItems(periodItems);
-
-         // Generar el PDF
-         byte[] pdfBytes = pdfGenerationService.generateConsortiumFeePdf(wrapper);
-
-         // Subir a MinIO
-         String filePath = generatePdfPath(consortiumFeePeriod);
-         minioUtils.uploadFile(
-               minioConfig.getBucketName(),
-               filePath,
-               new ByteArrayInputStream(pdfBytes)
-         );
-         log.info("PDF for consortium {} uploaded to MinIO at: {}", consortiumFeePeriod.getConsortium().getConsortiumId(), filePath);
-
-         // Guardar la ruta en la entidad
-         consortiumFeePeriod.setPdfFilePath(filePath);
 
          // Persistir la entidad con todos sus datos y la ruta del PDF
          consortiumFeePeriodRepository.save(consortiumFeePeriod);
@@ -123,6 +107,28 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
          }
 
          departmentFeeRepository.saveAll(departmentFeeOfPeriod);
+
+         // Preparar datos para el reporte Jasper
+         JasperWrapper jasperReportData = new JasperWrapper(
+               consortiumFeePeriod,
+               periodItems, // Esto es wrapper.getPeriodConcepts()
+               departmentFeeOfPeriod // La lista de DepartmentFeeEntity que ya calculaste
+         );
+
+         // Generar el PDF usando el JasperWrapper
+         byte[] pdfBytes = pdfGenerationService.generateConsortiumFeePdf(jasperReportData);
+
+         // Subir a MinIO
+         String filePath = generatePdfPath(consortiumFeePeriod);
+         minioUtils.uploadFile(
+               minioConfig.getBucketName(),
+               filePath,
+               new ByteArrayInputStream(pdfBytes)
+         );
+         log.info("PDF for consortium {} uploaded to MinIO at: {}", consortiumFeePeriod.getConsortium().getConsortiumId(), filePath);
+
+         // Guardar la ruta en la entidad
+         consortiumFeePeriod.setPdfFilePath(filePath);
 
          //TODO validar que esto si obtenga los departamentos y luego generar los DepartmentFee y DepartmentFeeItem
 

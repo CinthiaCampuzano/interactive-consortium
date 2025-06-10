@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="subreport_period_concepts" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="7bba5acc-5bb5-411e-a62e-07eb01e83e12">
+    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+    <queryString>
+        <![CDATA[]]>
+    </queryString>
+    <!-- Campos de ConsortiumFeePeriodItemEntity -->
+    <field name="name" class="java.lang.String"/>
+    <field name="description" class="java.lang.String"/>
+    <field name="amount" class="java.math.BigDecimal"/>
+    <field name="conceptType" class="com.utn.interactiveconsortium.enums.EConsortiumFeeConceptType"/>
+
+    <columnHeader>
+        <band height="20">
+            <staticText>
+                <reportElement x="0" y="0" width="150" height="20" uuid="96fff3d4-0097-4d2e-a359-9db0d03eba0a"/>
+                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Concepto]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="150" y="0" width="250" height="20" uuid="abdbc2f9-5a0b-41af-9f08-2e29406807b2"/>
+                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Descripción]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="400" y="0" width="100" height="20" uuid="339ad3ef-ec3d-4c16-85d6-8f93d3692601"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Monto]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+    <detail>
+        <band height="40">
+            <textField>
+                <reportElement x="0" y="0" width="150" height="20" uuid="d54677a7-a504-49f0-bf78-75f4b4ad614f"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+            </textField>
+            <textField isStretchWithOverflow="true">
+                <reportElement x="150" y="0" width="250" height="20" uuid="5b5053e3-5c92-480d-81ce-51ae68510d0f"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="400" y="0" width="100" height="20" uuid="d4a8a608-9a6b-4097-b4ed-797c84ca0733"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{amount}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

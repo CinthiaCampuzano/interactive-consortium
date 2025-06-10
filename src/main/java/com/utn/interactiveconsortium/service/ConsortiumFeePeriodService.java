@@ -14,22 +14,32 @@ import jakarta.validation.ValidationException;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.utn.interactiveconsortium.config.MinioConfig;
 import com.utn.interactiveconsortium.dto.ConsortiumFeePeriodDto;
+import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodEntity;
+import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodItemEntity;
 import com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.ConsortiumFeePeriodMapper;
 import com.utn.interactiveconsortium.repository.ConsortiumFeePeriodRepository;
+import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.util.MinioUtils;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConsortiumFeePeriodService {
+
+   private final List<EConsortiumFeePeriodStatus> PENDING_STATUS = List.of(PENDING, PENDING_GENERATION);
+
+   private final int DAY_OF_MONTH_TO_CREATE_NEW_PERIOD = 9;
 
    private final ConsortiumFeePeriodRepository consortiumFeePeriodRepository;
 
@@ -39,7 +49,7 @@ public class ConsortiumFeePeriodService {
 
    private final MinioUtils minioUtils;
 
-   private final List<EConsortiumFeePeriodStatus> PENDING_STATUS = List.of(PENDING, PENDING_GENERATION);
+   private final ConsortiumRepository consortiumRepository;
 
    public Page<ConsortiumFeePeriodDto> query(
          Long consortiumId,
@@ -82,6 +92,26 @@ public class ConsortiumFeePeriodService {
    private boolean isInvalidateDates(ConsortiumFeePeriodDto consortiumFeePeriodDto) {
       LocalDate today = LocalDate.now();
       return consortiumFeePeriodDto.getGenerationDate().isBefore(today) || consortiumFeePeriodDto.getDueDate().isBefore(consortiumFeePeriodDto.getGenerationDate()) ;
+   }
+
+//   @Scheduled(cron = "0/15 * * * * ?")
+   public void generateConsortiumFeePeriod() {
+      if (LocalDate.now().getDayOfMonth() != DAY_OF_MONTH_TO_CREATE_NEW_PERIOD) {
+         return;
+      }
+      LocalDate periodToGenerate = LocalDate.now().withDayOfMonth(1).plusMonths(1L);
+      log.info("Generating consortium fee periods for period {}", periodToGenerate);
+      List<ConsortiumEntity> consortiumsPendingPeriod = consortiumRepository.getAllNeedFeePeriodGeneration(periodToGenerate);
+      List<ConsortiumFeePeriodEntity> feePeriodsToCreate = consortiumsPendingPeriod
+            .stream()
+            .map(consortium -> ConsortiumFeePeriodEntity.builder()
+                  .consortium(consortium)
+                  .periodDate(periodToGenerate)
+                  .feePeriodStatus(PENDING)
+                  .build()
+            ).toList();
+      List<ConsortiumFeePeriodEntity> periodsSaved = consortiumFeePeriodRepository.saveAll(feePeriodsToCreate);
+      log.info("Consortium fee periods generated successfully, {} periods were create for period {}", periodsSaved.size(), periodsSaved);
    }
 
 }
