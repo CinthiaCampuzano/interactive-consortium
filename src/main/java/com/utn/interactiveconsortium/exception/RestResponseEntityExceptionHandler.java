@@ -40,4 +40,9 @@ public class RestResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
+    @ExceptionHandler(value = { CustomGenericException.class})
+    public ResponseEntity<Object> handleCustomGenericException(CustomGenericException ex){
+        return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(ex.getMessage());
+    }
+
 }
