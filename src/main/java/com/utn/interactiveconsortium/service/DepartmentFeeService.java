@@ -17,7 +17,7 @@ public class DepartmentFeeService {
 
    private final DepartmentFeeRepository departmentFeeRepository;
 
-   public Page<DepartmentFeeQueryAdminDto> adminQuery(LocalDate period, Pageable page) {
-      return departmentFeeRepository.adminQuery(period, page);
+   public Page<DepartmentFeeQueryAdminDto> adminQuery(Long consortiumId, LocalDate period, Pageable page) {
+      return departmentFeeRepository.adminQuery(consortiumId, period, page);
    }
 }

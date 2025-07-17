@@ -27,9 +27,10 @@ public class DepartmentFeeController {
    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
    @GetMapping("/query")
    public Page<DepartmentFeeQueryAdminDto> query(
+         @RequestParam Long consortiumId,
          @RequestParam LocalDate period,
          Pageable page
    ) {
-      return departmentFeeService.adminQuery(period, page);
+      return departmentFeeService.adminQuery(consortiumId, period, page);
    }
 }
