@@ -59,8 +59,12 @@ public interface ConsortiumRepository extends JpaRepository<ConsortiumEntity, Lo
     @Query("""
           SELECT c
           FROM ConsortiumEntity c
-          WHERE NOT EXISTS (SELECT 1 FROM ConsortiumFeePeriodEntity cp WHERE cp.consortium.consortiumId = c.consortiumId AND cp.periodDate = :period)
+          WHERE (:#{#consortiumIds.isEmpty()} = true OR c.consortiumId IN :consortiumIds)
+              AND NOT EXISTS (SELECT 1 FROM ConsortiumFeePeriodEntity cp WHERE cp.consortium.consortiumId = c.consortiumId AND cp.periodDate = :period)
     """)
-    List<ConsortiumEntity> getAllNeedFeePeriodGeneration(LocalDate period);
+    List<ConsortiumEntity> getAllNeedFeePeriodGeneration(
+          @Param("period") LocalDate period,
+          @Param("consortiumIds") List<Long> consortiumIds
+    );
 }
 

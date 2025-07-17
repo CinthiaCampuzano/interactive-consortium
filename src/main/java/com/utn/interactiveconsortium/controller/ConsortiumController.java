@@ -131,8 +131,8 @@ public class ConsortiumController {
     public void downloadImage(
             @PathVariable Long consortiumId,
             HttpServletResponse response
-    ) throws EntityNotFoundException, MessagingException, IOException {
-        consortiumService.downloadImage(consortiumId, response);;
+    ) throws EntityNotFoundException, IOException {
+        consortiumService.downloadImage(consortiumId, response);
     }
 
 }

@@ -12,6 +12,7 @@ import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumFeeConceptEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodItemEntity;
+import com.utn.interactiveconsortium.entity.DepartmentEntity;
 import com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus;
 import com.utn.interactiveconsortium.service.ConsortiumFeeConceptService;
 
@@ -19,34 +20,29 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumEntity, ConsortiumFeeWrapper> {
+public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumFeePeriodEntity, ConsortiumFeeWrapper> {
 
    private final ConsortiumFeeConceptService consortiumFeeConceptService;
 
    @Override
-   public ConsortiumFeeWrapper process(ConsortiumEntity item) throws Exception {
-      Long consortiumId = item.getConsortiumId();
-      LocalDate date = LocalDate.now();
+   public ConsortiumFeeWrapper process(ConsortiumFeePeriodEntity consortiumFeePeriod) throws Exception {
+      ConsortiumEntity consortium = consortiumFeePeriod.getConsortium();
+      Long consortiumId = consortium.getConsortiumId();
+      LocalDate todayDate = LocalDate.now();
       List<ConsortiumFeeConceptEntity> consortiumFeeConcepts = consortiumFeeConceptService.findByConsortiumId(consortiumId);
-      ConsortiumFeePeriodEntity consortiumFeePeriod = ConsortiumFeePeriodEntity
-            .builder()
-            .consortium(item)
-            .periodDate(date.withDayOfMonth(1))
-            .generationDate(date)
-            //TODO definir esto
-            .dueDate(date.plusDays(30))
-            .feePeriodStatus(EConsortiumFeePeriodStatus.GENERATED)
-            .build();
+      consortiumFeePeriod.setGenerationDate(todayDate);
+      consortiumFeePeriod.setFeePeriodStatus(EConsortiumFeePeriodStatus.GENERATED);
 
-      List<ConsortiumFeePeriodItemEntity> periodConcepts = generatePeriodConcepts(consortiumFeePeriod, consortiumFeeConcepts);
 
-      BigDecimal totalAmount = periodConcepts.stream()
-            .map(ConsortiumFeePeriodItemEntity::getAmount)
+      List<ConsortiumFeePeriodItemEntity> periodItems = generatePeriodConcepts(consortiumFeePeriod, consortiumFeeConcepts);
+
+      BigDecimal totalAmount = periodItems.stream()
+            .map(periodItem -> getTotalAmountForConsortium(consortium, periodItem))
             .reduce(BigDecimal::add)
             .orElseThrow();
       consortiumFeePeriod.setTotalAmount(totalAmount);
 
-      return new ConsortiumFeeWrapper(consortiumFeePeriod, periodConcepts);
+      return new ConsortiumFeeWrapper(consortiumFeePeriod, periodItems);
    }
 
    private List<ConsortiumFeePeriodItemEntity> generatePeriodConcepts(
@@ -70,5 +66,16 @@ public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumEntity, C
                   }
             )
             .toList();
+   }
+
+   private BigDecimal getTotalAmountForConsortium(ConsortiumEntity consortium, ConsortiumFeePeriodItemEntity periodItem) {
+      int totalDepartments = consortium.getDepartments().size();
+      int totalActiveDepartments = consortium.getDepartments().stream().filter(DepartmentEntity::getActive).toList().size();
+
+      return switch (periodItem.getDistributionType()) {
+         case EQUAL_SPLIT -> periodItem.getAmount();
+         case PER_UNIT_FIXED -> periodItem.getAmount().multiply(BigDecimal.valueOf(totalActiveDepartments));
+         default -> BigDecimal.ZERO;
+      };
    }
 }

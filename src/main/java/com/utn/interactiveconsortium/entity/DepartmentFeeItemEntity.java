@@ -3,6 +3,7 @@ package com.utn.interactiveconsortium.entity;
 import java.math.BigDecimal;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,7 +34,7 @@ public class DepartmentFeeItemEntity {
    @JoinColumn(name = "department_fee_id", nullable = false)
    private DepartmentFeeEntity departmentFee;
 
-   @ManyToOne
+   @ManyToOne(fetch = FetchType.LAZY)
    @JoinColumn(name = "consortium_fee_period_item_id", nullable = false)
    private ConsortiumFeePeriodItemEntity consortiumFeePeriodItem;
 

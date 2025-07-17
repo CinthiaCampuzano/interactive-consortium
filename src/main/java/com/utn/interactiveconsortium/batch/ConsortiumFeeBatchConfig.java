@@ -27,7 +27,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import com.utn.interactiveconsortium.batch.steps.ConsortiumFeePartitioner;
 import com.utn.interactiveconsortium.batch.wrapper.ConsortiumFeeWrapper;
-import com.utn.interactiveconsortium.entity.ConsortiumEntity;
+import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodEntity;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -44,32 +44,32 @@ public class ConsortiumFeeBatchConfig {
 
    @Bean("consortiumFeeReader")
    @StepScope
-   public JpaPagingItemReader<ConsortiumEntity> consortiumFeeReader(@Value("#{stepExecutionContext['consortiumId']}") Long consortiumId) {
-      LocalDate period = LocalDate.now().withDayOfMonth(1);
+   public JpaPagingItemReader<ConsortiumFeePeriodEntity> consortiumFeeReader(@Value("#{stepExecutionContext['consortiumId']}") Long consortiumId) {
+      LocalDate todayDate = LocalDate.now();
+      LocalDate period = todayDate.withDayOfMonth(1);
 
       Map<String, Object> parameterValues = new HashMap<>();
       parameterValues.put("consortiumId", consortiumId);
+      parameterValues.put("generationDate", todayDate);
       parameterValues.put("period", period);
 
-      return new JpaPagingItemReaderBuilder<ConsortiumEntity>()
+      return new JpaPagingItemReaderBuilder<ConsortiumFeePeriodEntity>()
             .name("consortiumFeeReader")
             .entityManagerFactory(entityManagerFactory)
             .queryString("""
-                  SELECT c FROM ConsortiumEntity c
+                  SELECT cp
+                  FROM ConsortiumEntity c
+                  INNER JOIN ConsortiumFeePeriodEntity cp ON cp.consortium.consortiumId = c.consortiumId
                   WHERE c.consortiumId = :consortiumId
-                  AND EXISTS (
-                      SELECT 1
-                      FROM ConsortiumFeeConceptEntity cc
-                      WHERE cc.active = true
-                      AND cc.consortium.consortiumId = c.consortiumId
-                  )
-                  AND NOT EXISTS (
-                      SELECT 1
-                      FROM ConsortiumFeePeriodEntity cp
-                      WHERE cp.consortium.consortiumId = c.consortiumId
-                      AND cp.periodDate = :period
-                  )
-                  ORDER BY c.consortiumId ASC
+                     AND cp.periodDate = :period
+                     AND cp.generationDate = :generationDate
+                     AND cp.feePeriodStatus = com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus.PENDING_GENERATION
+                     AND EXISTS (
+                         SELECT 1
+                         FROM ConsortiumFeeConceptEntity cc
+                         WHERE cc.active = true
+                         AND cc.consortium.consortiumId = c.consortiumId
+                     )
                   """)
             .parameterValues(parameterValues)
             .pageSize(CHUNK_SIZE)
@@ -80,12 +80,12 @@ public class ConsortiumFeeBatchConfig {
    public Step slaveStep(
          JobRepository jobRepository,
          PlatformTransactionManager transactionManager,
-         JpaPagingItemReader<ConsortiumEntity> consortiumFeeReader,
-         ItemProcessor<ConsortiumEntity, ConsortiumFeeWrapper> consortiumFeeProcessor,
+         JpaPagingItemReader<ConsortiumFeePeriodEntity> consortiumFeeReader,
+         ItemProcessor<ConsortiumFeePeriodEntity, ConsortiumFeeWrapper> consortiumFeeProcessor,
          ItemWriter<ConsortiumFeeWrapper> consortiumFeeWriter
    ) {
       return new StepBuilder("slaveStep", jobRepository)
-            .<ConsortiumEntity, ConsortiumFeeWrapper>chunk(CHUNK_SIZE, transactionManager)
+            .<ConsortiumFeePeriodEntity, ConsortiumFeeWrapper>chunk(CHUNK_SIZE, transactionManager)
             .reader(consortiumFeeReader)
             .processor(consortiumFeeProcessor)
             .writer(consortiumFeeWriter)
@@ -117,7 +117,7 @@ public class ConsortiumFeeBatchConfig {
    @Bean
    public Job consortiumFeeJob(JobRepository jobRepository, Step masterStep) {
       return new JobBuilder("consortiumFeeJob", jobRepository)
-            .incrementer(new RunIdIncrementer()) // Para asegurar que cada ejecución tenga parámetros únicos
+            .incrementer(new RunIdIncrementer())
             .flow(masterStep)
             .end()
             .build();

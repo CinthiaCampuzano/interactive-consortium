@@ -61,4 +61,7 @@ public class ConsortiumFeePeriodEntity {
    @OneToMany(mappedBy = "consortiumFeePeriod", cascade = CascadeType.ALL, orphanRemoval = true)
    private List<ConsortiumFeePeriodItemEntity> feePeriodItems;
 
+   @OneToMany(mappedBy = "consortiumFeePeriod", cascade = CascadeType.ALL, orphanRemoval = true)
+   private List<DepartmentFeeEntity> departmentFees;
+
 }

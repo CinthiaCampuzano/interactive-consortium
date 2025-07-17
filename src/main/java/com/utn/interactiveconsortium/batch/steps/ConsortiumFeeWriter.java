@@ -56,7 +56,7 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
          consortiumFeePeriod.setFeePeriodItems(periodItems);
 
          // Persistir la entidad con todos sus datos y la ruta del PDF
-         consortiumFeePeriodRepository.save(consortiumFeePeriod);
+         consortiumFeePeriod = consortiumFeePeriodRepository.save(consortiumFeePeriod);
          log.debug("Period saved successfully: {}", consortiumFeePeriod.getConsortiumFeePeriodId());
 
 
@@ -89,7 +89,7 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
 
             BigDecimal departmentAmount = BigDecimal.ZERO;
 
-            for (ConsortiumFeePeriodItemEntity item : periodItems) {
+            for (ConsortiumFeePeriodItemEntity item : consortiumFeePeriod.getFeePeriodItems()) {
                BigDecimal amount = calculateItemAmount(item.getAmount(), numActiveDepartments, item.getDistributionType());
                departmentAmount = departmentAmount.add(amount);
                DepartmentFeeItemEntity departmentFeeItem = DepartmentFeeItemEntity
@@ -111,7 +111,7 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
          // Preparar datos para el reporte Jasper
          JasperWrapper jasperReportData = new JasperWrapper(
                consortiumFeePeriod,
-               periodItems, // Esto es wrapper.getPeriodConcepts()
+               consortiumFeePeriod.getFeePeriodItems(), // Esto es wrapper.getPeriodConcepts()
                departmentFeeOfPeriod // La lista de DepartmentFeeEntity que ya calculaste
          );
 
@@ -129,6 +129,7 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
 
          // Guardar la ruta en la entidad
          consortiumFeePeriod.setPdfFilePath(filePath);
+         consortiumFeePeriodRepository.save(consortiumFeePeriod);
 
          //TODO validar que esto si obtenga los departamentos y luego generar los DepartmentFee y DepartmentFeeItem
 

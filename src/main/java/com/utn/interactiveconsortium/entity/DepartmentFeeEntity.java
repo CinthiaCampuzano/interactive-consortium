@@ -61,7 +61,7 @@ public class DepartmentFeeEntity {
    @OneToMany(mappedBy = "departmentFee", cascade = CascadeType.ALL, orphanRemoval = true)
    private List<DepartmentFeeItemEntity> departmentFeeItems;
 
-   @OneToMany
+   @OneToMany(mappedBy = "departmentFee", cascade = CascadeType.ALL, orphanRemoval = true)
    private List<PaymentEntity> payments;
 
 }

@@ -18,7 +18,9 @@ import lombok.RequiredArgsConstructor;
 public class ConsortiumFeePartitioner implements Partitioner {
 
    private static final Logger LOGGER = LoggerFactory.getLogger(ConsortiumFeePartitioner.class);
+
    public static final String PARTITION_KEY_PREFIX = "partition";
+
    public static final String CONSORTIUM_ID = "consortiumId";
 
    private final ConsortiumRepository consortiumRepository;
@@ -36,7 +38,7 @@ public class ConsortiumFeePartitioner implements Partitioner {
          executionContext.putLong(CONSORTIUM_ID, consortiumId);
          String partitionName = PARTITION_KEY_PREFIX + "_ConsortiumId_" + consortiumId;
          partitions.put(partitionName, executionContext);
-         LOGGER.debug("Created partition {} for consortiumId: {}", partitionName, consortiumId);
+         LOGGER.info("Created partition {} for consortiumId: {}", partitionName, consortiumId);
       }
 
       LOGGER.info("Successfully created {} partitions.", partitions.size());
