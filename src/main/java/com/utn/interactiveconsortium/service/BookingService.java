@@ -1,12 +1,15 @@
 package com.utn.interactiveconsortium.service;
 
+import com.utn.interactiveconsortium.dto.AmenitiesBookingAvailableDto;
 import com.utn.interactiveconsortium.dto.BookingDto;
 import com.utn.interactiveconsortium.dto.DateShiftDto;
 import com.utn.interactiveconsortium.entity.AmenityEntity;
 import com.utn.interactiveconsortium.entity.BookingEntity;
+import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.DepartmentEntity;
 import com.utn.interactiveconsortium.entity.PersonEntity;
-import com.utn.interactiveconsortium.enums.Shift;
+import com.utn.interactiveconsortium.enums.EBookingStatus;
+import com.utn.interactiveconsortium.enums.EShift;
 import com.utn.interactiveconsortium.exception.BookingLimitExceededException;
 import com.utn.interactiveconsortium.exception.BookingNotAvailableException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
@@ -23,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +49,8 @@ public class BookingService {
     public Page<BookingDto> getBookingsForResident(Long idConsortium, Pageable page) {
 
         Long residentId = loggedUserService.getLoggedPerson().getPersonId();
-        return bookingMapper.toPage(bookingRepository.findByAmenity_Consortium_ConsortiumIdAndResident_PersonId(idConsortium, residentId, LocalDate.now(), page));
+        return bookingMapper.toPage(
+              bookingRepository.findByAmenity_Consortium_ConsortiumIdAndResident_PersonId(idConsortium, residentId, LocalDate.now(), page));
 
     }
 
@@ -61,50 +66,54 @@ public class BookingService {
         LocalDate endDate = startDate.plusDays(30);
 
         List<DateShiftDto> allDatesShifts = new ArrayList<>();
-        allDatesShifts.addAll(generateAllDatesShiftsInRange(startDate, endDate, Shift.MORNING));
-        allDatesShifts.addAll(generateAllDatesShiftsInRange(startDate, endDate, Shift.NIGHT));
+        allDatesShifts.addAll(generateAllDatesShiftsInRange(startDate, endDate, EShift.MORNING));
+        allDatesShifts.addAll(generateAllDatesShiftsInRange(startDate, endDate, EShift.NIGHT));
 
         List<BookingEntity> bookings = bookingRepository.findByAmenity_AmenityId(idAmenity);
-        List<DateShiftDto> bookedDatesShifts = bookings.stream()
-                .map(booking -> DateShiftDto.builder()
-                        .date(booking.getStartDate())
-                        .shift(booking.getShift())
-                        .build())
-                .toList();
+        List<DateShiftDto> bookedDatesShifts = bookings
+              .stream()
+              .map(booking -> DateShiftDto.builder().date(booking.getStartDate()).shift(booking.getShift()).build())
+              .toList();
 
         allDatesShifts.removeAll(bookedDatesShifts);
 
         return allDatesShifts;
     }
 
-    public List<DateShiftDto> generateAllDatesShiftsInRange(LocalDate startDate, LocalDate endDate, Shift shift) {
+    public List<DateShiftDto> generateAllDatesShiftsInRange(LocalDate startDate, LocalDate endDate, EShift shift) {
         List<DateShiftDto> datesShiftsInRange = new ArrayList<>();
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            datesShiftsInRange.add(DateShiftDto.builder()
-                    .date(date)
-                    .shift(shift)
-                    .build());
+            datesShiftsInRange.add(DateShiftDto.builder().date(date).shift(shift).build());
         }
         return datesShiftsInRange;
     }
 
     @Transactional
-    public BookingDto createBooking(BookingDto bookingDto) throws BookingNotAvailableException, EntityNotFoundException, BookingLimitExceededException {
+    public BookingDto createBooking(BookingDto bookingDto)
+          throws BookingNotAvailableException, EntityNotFoundException, BookingLimitExceededException {
 
         if (!bookingDto.getStartDate().isAfter(LocalDate.now())) {
             throw new BookingNotAvailableException("La fecha de la reserva debe ser posterior a la fecha actual");
         }
 
-        AmenityEntity amenity = amenityRepository.findById(bookingDto.getAmenity().getAmenityId())
-                .orElseThrow(() -> new EntityNotFoundException("No existe ese espacio comun"));
+        AmenityEntity amenity = amenityRepository
+              .findById(bookingDto.getAmenity().getAmenityId())
+              .orElseThrow(() -> new EntityNotFoundException("No existe ese espacio comun"));
+
+        if (!amenity.isActive()) {
+            throw new BookingNotAvailableException("El espacio no esta habilitado en este momento.");
+        }
 
         PersonEntity loggedPerson = loggedUserService.getLoggedPerson();
 
-        DepartmentEntity department = amenity.getConsortium().getDepartments().stream()
-                .filter(aDepartment -> aDepartment.getDepartmentId().equals(bookingDto.getDepartment().getDepartmentId()))
-                .filter(aDepartment -> aDepartment.getResident().getPersonId().equals(loggedPerson.getPersonId()))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("El departamento no pertenece al residente"));
+        DepartmentEntity department = amenity
+              .getConsortium()
+              .getDepartments()
+              .stream()
+              .filter(aDepartment -> aDepartment.getDepartmentId().equals(bookingDto.getDepartment().getDepartmentId()))
+              .filter(aDepartment -> aDepartment.getResident().getPersonId().equals(loggedPerson.getPersonId()))
+              .findFirst()
+              .orElseThrow(() -> new EntityNotFoundException("El departamento no pertenece al residente"));
 
         if (!department.getActive()) {
             throw new EntityNotFoundException("El departamento no está activo");
@@ -114,15 +123,20 @@ public class BookingService {
         LocalDate firstDayOfMonth = now.withDayOfMonth(1);
         LocalDate lastDayOfMonth = now.withDayOfMonth(now.lengthOfMonth());
 
-        List<BookingEntity> bookingsThisMonth = bookingRepository.findByResidentIdAndAmenityIdAndStartDateBetween(loggedPerson.getPersonId(), amenity.getAmenityId(), firstDayOfMonth, lastDayOfMonth);
+        List<BookingEntity> bookingsThisMonth = bookingRepository.findByResidentIdAndAmenityIdAndStartDateBetween(loggedPerson.getPersonId(),
+              amenity.getAmenityId(), firstDayOfMonth, lastDayOfMonth);
 
         if (bookingsThisMonth.size() >= amenity.getMaxBookings()) {
-            throw new BookingLimitExceededException("El residente ya ha hecho " + amenity.getMaxBookings() + " reservas este mes para este espacio común");
+            throw new BookingLimitExceededException(
+                  "El residente ya ha hecho " + amenity.getMaxBookings() + " reservas este mes para este espacio común");
         }
 
         List<DateShiftDto> dateShiftDtoList = getAvailableDates(bookingDto.getAmenity().getAmenityId());
-        boolean isAvailable = dateShiftDtoList.stream()
-                .anyMatch(dateShiftDto -> dateShiftDto.getDate().equals(bookingDto.getStartDate()) && dateShiftDto.getShift().equals(bookingDto.getShift()));
+        boolean isAvailable = dateShiftDtoList
+              .stream()
+              .anyMatch(dateShiftDto -> dateShiftDto.getDate().equals(bookingDto.getStartDate()) && dateShiftDto
+                    .getShift()
+                    .equals(bookingDto.getShift()));
 
         if (!isAvailable) {
             throw new BookingNotAvailableException("La fecha y turno seleccionados no están disponibles");
@@ -133,6 +147,8 @@ public class BookingService {
         bookingEntity.setAmenity(amenity);
         bookingEntity.setResident(loggedPerson);
         bookingEntity.setDepartment(department);
+        bookingEntity.setBookingCost(amenity.getCostOfUse());
+        bookingEntity.setBookingStatus(EBookingStatus.PENDING);
 
         bookingRepository.save(bookingEntity);
 
@@ -144,18 +160,32 @@ public class BookingService {
 
     public void deleteBooking(Long idBooking) throws EntityNotFoundException {
 
-        BookingEntity bookingEntity = bookingRepository.findById(idBooking)
-                .orElseThrow(() -> new EntityNotFoundException("No existe esa reserva"));
+        BookingEntity bookingEntity = bookingRepository.findById(idBooking).orElseThrow(() -> new EntityNotFoundException("No existe esa reserva"));
 
-//        LocalDate now = LocalDate.now();
-//
-//        if (bookingEntity.getStartDate().equals(now)) {
-//            throw new EntityNotFoundException("No se puede eliminar una reserva en el día de su realización. " +
-//                    "Las reservas solo pueden eliminarse con más de 24 horas de anticipación.");
-//        }
+        //        LocalDate now = LocalDate.now();
+        //
+        //        if (bookingEntity.getStartDate().equals(now)) {
+        //            throw new EntityNotFoundException("No se puede eliminar una reserva en el día de su realización. " +
+        //                    "Las reservas solo pueden eliminarse con más de 24 horas de anticipación.");
+        //        }
 
         bookingRepository.deleteById(idBooking);
-
     }
 
+    public List<AmenitiesBookingAvailableDto> amenitiesBookingAvailableList(Long consortiumId) throws EntityNotFoundException {
+
+        PersonEntity loggedPerson = loggedUserService.getLoggedPerson();
+        ConsortiumEntity consortiumEntity = loggedPerson
+              .getConsortiums()
+              .stream()
+              .filter(consortium -> consortium.getConsortiumId().equals(consortiumId))
+              .findFirst()
+              .orElseThrow(() ->new EntityNotFoundException("No existe el consorcio"));
+
+//        bookingRepository.findByAmenity_Consortium_ConsortiumId()
+//        consortiumEntity.getAmenities()
+//              .stream()
+//                        .map(amenityEntity -> );
+        return null;
+    }
 }

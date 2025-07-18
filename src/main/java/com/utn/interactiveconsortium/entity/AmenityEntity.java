@@ -3,6 +3,7 @@ package com.utn.interactiveconsortium.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Table(name = "amenity")
@@ -22,7 +23,7 @@ public class AmenityEntity {
 
     private Integer maxBookings;
 
-    private Integer costOfUse;
+    private BigDecimal costOfUse;
 
     @ManyToOne
     @JoinColumn(name = "consortium_id")
@@ -33,5 +34,8 @@ public class AmenityEntity {
     private List<BookingEntity> bookings;
 
     private String imagePath;
+    
+    @Builder.Default
+    private boolean active = true;
 
 }

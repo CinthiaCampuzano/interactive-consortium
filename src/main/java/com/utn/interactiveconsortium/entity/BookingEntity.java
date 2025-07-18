@@ -1,9 +1,11 @@
 package com.utn.interactiveconsortium.entity;
 
-import com.utn.interactiveconsortium.enums.Shift;
+import com.utn.interactiveconsortium.enums.EBookingStatus;
+import com.utn.interactiveconsortium.enums.EShift;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 @Table(name = "booking")
@@ -21,7 +23,12 @@ public class BookingEntity {
     private LocalDate startDate;
 
     @Enumerated(EnumType.STRING)
-    private Shift shift;
+    private EShift shift;
+
+    private BigDecimal bookingCost;
+
+    @Enumerated(EnumType.STRING)
+    private EBookingStatus bookingStatus;
 
     private LocalDateTime createdAt;
 

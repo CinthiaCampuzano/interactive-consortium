@@ -13,34 +13,34 @@ import java.util.Set;
 
 public interface MaintenanceFeePaymentRepository extends JpaRepository<MaintenanceFeePaymentEntity, Long> {
 
-    @Query("SELECT mfp " +
-            "FROM MaintenanceFeePaymentEntity mfp " +
-            "WHERE mfp.maintenanceFee.consortium.consortiumId = :consortiumId " +
-            "AND (:period IS NULL OR mfp.maintenanceFee.period = :period) " +
-            "AND (:status IS NULL OR mfp.status = :status) " +
-            "AND mfp.maintenanceFee.consortium.consortiumId IN :associatedConsortiumIds")
-    Page<MaintenanceFeePaymentEntity> getMaintenanceFeePayments(
-            Long consortiumId,
-            LocalDate period,
-            EPaymentStatus status,
-            List<Long> associatedConsortiumIds,
-            Pageable pageable
-    );
-
-
-    @Query(
-            "SELECT mfp " +
-            "FROM MaintenanceFeePaymentEntity mfp " +
-            "WHERE mfp.maintenanceFee.consortium.consortiumId = :consortiumId " +
-            "AND (:period IS NULL OR mfp.maintenanceFee.period = :period) " +
-            "AND mfp.maintenanceFee.consortium.consortiumId IN :associatedConsortiumIds " +
-            "AND mfp.department.departmentId IN :associatedDepartmentsIds"
-    )
-    Page<MaintenanceFeePaymentEntity> getMaintenanceFeePaymentsForPerson(
-            Long consortiumId,
-            LocalDate period,
-            List<Long> associatedConsortiumIds,
-            Set<Long> associatedDepartmentsIds,
-            Pageable pageable
-    );
+//    @Query("SELECT mfp " +
+//            "FROM MaintenanceFeePaymentEntity mfp " +
+//            "WHERE mfp.maintenanceFee.consortium.consortiumId = :consortiumId " +
+//            "AND (:period IS NULL OR mfp.maintenanceFee.period = :period) " +
+//            "AND (:status IS NULL OR mfp.status = :status) " +
+//            "AND mfp.maintenanceFee.consortium.consortiumId IN :associatedConsortiumIds")
+//    Page<MaintenanceFeePaymentEntity> getMaintenanceFeePayments(
+//            Long consortiumId,
+//            LocalDate period,
+//            EPaymentStatus status,
+//            List<Long> associatedConsortiumIds,
+//            Pageable pageable
+//    );
+//
+//
+//    @Query(
+//            "SELECT mfp " +
+//            "FROM MaintenanceFeePaymentEntity mfp " +
+//            "WHERE mfp.maintenanceFee.consortium.consortiumId = :consortiumId " +
+//            "AND (:period IS NULL OR mfp.maintenanceFee.period = :period) " +
+//            "AND mfp.maintenanceFee.consortium.consortiumId IN :associatedConsortiumIds " +
+//            "AND mfp.department.departmentId IN :associatedDepartmentsIds"
+//    )
+//    Page<MaintenanceFeePaymentEntity> getMaintenanceFeePaymentsForPerson(
+//            Long consortiumId,
+//            LocalDate period,
+//            List<Long> associatedConsortiumIds,
+//            Set<Long> associatedDepartmentsIds,
+//            Pageable pageable
+//    );
 }

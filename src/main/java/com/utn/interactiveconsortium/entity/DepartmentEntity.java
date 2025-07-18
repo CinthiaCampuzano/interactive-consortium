@@ -32,8 +32,9 @@ public class DepartmentEntity {
     @JoinColumn(name = "resident_id")
     private PersonEntity resident;
 
-    @OneToMany(mappedBy = "department")
-    private List<MaintenanceFeePaymentEntity> maintenanceFeePayments;
+    //TODO legacy class
+//    @OneToMany(mappedBy = "department")
+//    private List<MaintenanceFeePaymentEntity> maintenanceFeePayments;
 
     private Boolean active;
 

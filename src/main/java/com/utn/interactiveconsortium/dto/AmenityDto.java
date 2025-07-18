@@ -1,5 +1,7 @@
 package com.utn.interactiveconsortium.dto;
 
+import java.math.BigDecimal;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,10 +15,12 @@ public class AmenityDto {
 
     private Integer maxBookings;
 
-    private Integer costOfUse;
+    private BigDecimal costOfUse;
 
     private ConsortiumDto consortium;
 
     private String imagePath;
+
+    private boolean active;
 
 }

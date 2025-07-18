@@ -67,12 +67,12 @@ public class AmenityController {
     }
 
     @GetMapping("/{amenityId}/download")
-    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
+    @PreAuthorize(BASIC_ROLES)
     public void downloadImage(
             @PathVariable Long amenityId,
             HttpServletResponse response
     ) throws EntityNotFoundException, MessagingException, IOException {
-        amenityService.downloadImage(amenityId, response);;
+        amenityService.downloadImage(amenityId, response);
     }
 
 
