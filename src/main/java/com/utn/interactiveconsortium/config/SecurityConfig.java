@@ -16,29 +16,22 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @RequiredArgsConstructor
 @Configuration
-//@EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    @Value("${server.servlet.context-path}")
-    private String contextPath;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private final AuthenticationProvider authenticationProvider;
 
-    //The example below shows the configuration that is equivalent to the default one:
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(matcherRegistry -> matcherRegistry
-//                        .requestMatchers("/administrators").permitAll()
-//                        .requestMatchers(HttpMethod.POST, "appUser/**").permitAll()
-                        .anyRequest().permitAll() // 1
+                        .anyRequest().permitAll()
                 )
-//                .formLogin(Customizer.withDefaults())  // 2
-                .httpBasic(Customizer.withDefaults())  // 3
+                .httpBasic(Customizer.withDefaults())
                 .sessionManagement(sessionManager ->
                         sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)

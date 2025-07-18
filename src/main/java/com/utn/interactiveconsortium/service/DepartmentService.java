@@ -87,6 +87,7 @@ public class DepartmentService {
                 DepartmentEntity newDepartment = new DepartmentEntity();
                 newDepartment.setCode(i + getLetterForDepartment(j));
                 newDepartment.setConsortium(consortiumEntity);
+                newDepartment.setActive(true);
                 departments.add(newDepartment);
             }
         }

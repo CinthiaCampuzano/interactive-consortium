@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface ConsortiumRepository extends JpaRepository<ConsortiumEntity, Long> {
@@ -53,6 +54,17 @@ public interface ConsortiumRepository extends JpaRepository<ConsortiumEntity, Lo
             Long personId,
             List<Long> associatedConsortiumIds,
             Pageable pageable
+    );
+
+    @Query("""
+          SELECT c
+          FROM ConsortiumEntity c
+          WHERE (:#{#consortiumIds.isEmpty()} = true OR c.consortiumId IN :consortiumIds)
+              AND NOT EXISTS (SELECT 1 FROM ConsortiumFeePeriodEntity cp WHERE cp.consortium.consortiumId = c.consortiumId AND cp.periodDate = :period)
+    """)
+    List<ConsortiumEntity> getAllNeedFeePeriodGeneration(
+          @Param("period") LocalDate period,
+          @Param("consortiumIds") List<Long> consortiumIds
     );
 }
 

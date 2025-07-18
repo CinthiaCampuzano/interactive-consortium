@@ -17,6 +17,9 @@ public class WebConfig implements WebMvcConfigurer {
                         .allowedOrigins(
                                 "https://interactive-consortium-production.up.railway.app",
                                 "http://localhost:5173",
+                                "https://localhost:5173",
+                                "https://web.consorciointeractivo.online",
+                                "http://web.consorciointeractivo.online",
                                 "https://ui-interactive-consortium-production.up.railway.app"
                         )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")

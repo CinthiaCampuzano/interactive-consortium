@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="subreport_department_fees" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="63e31c9d-bf1e-4fe2-9269-a3dddd4f2c7f">
+    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+    <queryString>
+        <![CDATA[]]>
+    </queryString>
+    <!-- Campos de DepartmentFeeEntity -->
+    <field name="department" class="com.utn.interactiveconsortium.entity.DepartmentEntity"/>
+    <field name="totalAmount" class="java.math.BigDecimal"/>
+    <field name="dueDate" class="java.time.LocalDate"/>
+    <!-- Agrega más campos si los necesitas -->
+
+    <columnHeader>
+        <band height="20">
+            <staticText>
+                <reportElement x="0" y="0" width="100" height="20" uuid="656952a7-ce7d-4e1e-a3d0-541c51416de9"/>
+                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Departamento]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="100" y="0" width="150" height="20" uuid="9ba9119c-0ef2-4ced-878f-353d905d3c97"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Monto a Pagar]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="250" y="0" width="150" height="20" uuid="b73e0ec9-7396-4311-a7c0-d0ef0387b0a1"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Fecha Vencimiento]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+    <detail>
+        <band height="20">
+            <textField>
+                <reportElement x="0" y="0" width="100" height="20" uuid="a2519c63-b30e-4c26-990b-aebd3ba3b984"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{department}.getCode()]]></textFieldExpression> <!-- Asumiendo getCode() en DepartmentEntity -->
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="100" y="0" width="150" height="20" uuid="90f3bc98-d8ae-4ec6-9363-83dc5cd32849"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{totalAmount}]]></textFieldExpression>
+            </textField>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="250" y="0" width="150" height="20" uuid="052812de-55f6-4575-935d-d6dcb4476b98"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{dueDate}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

@@ -1,18 +1,25 @@
 package com.utn.interactiveconsortium.controller;
 
-import com.utn.interactiveconsortium.dto.DepartmentDto;
-import com.utn.interactiveconsortium.dto.PersonDto;
-import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
-import com.utn.interactiveconsortium.exception.EntityNotFoundException;
-import com.utn.interactiveconsortium.service.DepartmentService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.utn.interactiveconsortium.dto.DepartmentDto;
+import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
+import com.utn.interactiveconsortium.exception.EntityNotFoundException;
+import com.utn.interactiveconsortium.service.DepartmentService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping(value = "departments")

@@ -1,0 +1,1 @@
+rename table maintenance_fee_payment to payment;
