@@ -44,6 +44,8 @@ public class BookingEntity {
     @JoinColumn(name = "department_id")
     private DepartmentEntity department;
 
+    private LocalDate period;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

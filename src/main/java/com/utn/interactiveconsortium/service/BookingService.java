@@ -12,21 +12,26 @@ import com.utn.interactiveconsortium.enums.EBookingStatus;
 import com.utn.interactiveconsortium.enums.EShift;
 import com.utn.interactiveconsortium.exception.BookingLimitExceededException;
 import com.utn.interactiveconsortium.exception.BookingNotAvailableException;
+import com.utn.interactiveconsortium.exception.CustomGenericException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.BookingMapper;
 import com.utn.interactiveconsortium.repository.AmenityRepository;
 import com.utn.interactiveconsortium.repository.BookingRepository;
+import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,15 +47,32 @@ public class BookingService {
 
     private final LoggedUserService loggedUserService;
 
-    public Page<BookingDto> getAllBookingsForAdmin(Long idConsortium, Pageable page) {
-        return bookingMapper.toPage(bookingRepository.findByAmenity_Consortium_ConsortiumId(idConsortium, LocalDate.now(), page));
+    private final ConsortiumRepository consortiumRepository;
+
+    public Page<BookingDto> getAllBookingsForAdmin(Long idConsortium, Long amenityId, EShift shift, LocalDate date, String departmentCode, EBookingStatus status, Pageable page) {
+        return bookingMapper.toPage(bookingRepository.findBookingsForAdminWithFilters(
+              idConsortium,
+              amenityId,
+              shift,
+              date,
+              departmentCode,
+              status,
+              page
+        ));
     }
 
-    public Page<BookingDto> getBookingsForResident(Long idConsortium, Pageable page) {
+    public Page<BookingDto> getBookingsForResident(Long idConsortium, Long amenityId, EShift shift, LocalDate date, String departmentCode, EBookingStatus status, Pageable page) {
 
         Long residentId = loggedUserService.getLoggedPerson().getPersonId();
         return bookingMapper.toPage(
-              bookingRepository.findByAmenity_Consortium_ConsortiumIdAndResident_PersonId(idConsortium, residentId, LocalDate.now(), page));
+              bookingRepository.findBookingsForResidentWithFilters(idConsortium, residentId,
+                    amenityId,
+                    shift,
+                    date,
+                    departmentCode,
+                    status,
+                    page
+              ));
 
     }
 
@@ -123,7 +145,7 @@ public class BookingService {
         LocalDate firstDayOfMonth = now.withDayOfMonth(1);
         LocalDate lastDayOfMonth = now.withDayOfMonth(now.lengthOfMonth());
 
-        List<BookingEntity> bookingsThisMonth = bookingRepository.findByResidentIdAndAmenityIdAndStartDateBetween(loggedPerson.getPersonId(),
+        List<BookingEntity> bookingsThisMonth = bookingRepository.findByDepartmentIdAndAmenityIdAndStartDateBetween(department.getDepartmentId(),
               amenity.getAmenityId(), firstDayOfMonth, lastDayOfMonth);
 
         if (bookingsThisMonth.size() >= amenity.getMaxBookings()) {
@@ -175,17 +197,128 @@ public class BookingService {
     public List<AmenitiesBookingAvailableDto> amenitiesBookingAvailableList(Long consortiumId) throws EntityNotFoundException {
 
         PersonEntity loggedPerson = loggedUserService.getLoggedPerson();
-        ConsortiumEntity consortiumEntity = loggedPerson
-              .getConsortiums()
-              .stream()
-              .filter(consortium -> consortium.getConsortiumId().equals(consortiumId))
-              .findFirst()
+        ConsortiumEntity consortium = consortiumRepository.findById(consortiumId)
               .orElseThrow(() ->new EntityNotFoundException("No existe el consorcio"));
 
-//        bookingRepository.findByAmenity_Consortium_ConsortiumId()
-//        consortiumEntity.getAmenities()
-//              .stream()
-//                        .map(amenityEntity -> );
-        return null;
+        Map<Long, AmenityEntity> amenities = consortium
+              .getAmenities()
+              .stream()
+              .collect(Collectors.toMap(AmenityEntity::getAmenityId, amenityEntity -> amenityEntity));
+
+        List<DepartmentEntity> departments = consortium
+              .getDepartments()
+              .stream()
+              .filter(departmentEntity -> departmentEntity.getResident().getPersonId().equals(loggedPerson.getPersonId()))
+              .toList();
+
+        Map<Long, Map<Long, Long>> bookingsForCurrentMonth = bookingRepository.findActiveBookingsFor(departments)
+              .stream()
+              .collect(Collectors.groupingBy(bookingEntity -> bookingEntity.getDepartment().getDepartmentId(),
+                    Collectors.groupingBy(bookingEntity -> bookingEntity.getAmenity().getAmenityId(), Collectors.counting())));
+
+
+        List<AmenitiesBookingAvailableDto> bookingAvailableList = new ArrayList<>();
+
+        for (DepartmentEntity department : departments) {
+            Long departmentId = department.getDepartmentId();
+            for (Map.Entry<Long, AmenityEntity> amenity : amenities.entrySet()) {
+                Long amenityId = amenity.getKey();
+                AmenityEntity auxAmenity = amenity.getValue();
+                int usedLimit = 0;
+                int amenityBookingLimit = auxAmenity.getMaxBookings();
+
+                if (bookingsForCurrentMonth.containsKey(departmentId)) {
+                    Map<Long, Long> auxAmenities = bookingsForCurrentMonth.get(departmentId);
+                    if (auxAmenities.containsKey(amenityId)) {
+                        usedLimit = auxAmenities.get(amenityId).intValue();
+                    }
+                }
+                AmenitiesBookingAvailableDto bookingAvailableDto = AmenitiesBookingAvailableDto
+                      .builder()
+                      .consortiumId(consortiumId)
+                      .amenityId(amenityId)
+                      .departmentId(departmentId)
+                      .amenityBooking(usedLimit)
+                      .amenityMaxBooking(amenityBookingLimit)
+                      .build();
+                bookingAvailableList.add(bookingAvailableDto);
+            }
+        }
+
+        return bookingAvailableList;
+    }
+
+    //Un administrador tiene que poder cancelar una reserva no importa si la misma fue concretada
+    @Scheduled(cron = "0 0 15,23 * * *")
+    @Transactional(rollbackFor = Exception.class)
+    public void processBookings() {
+        processBookings(LocalDateTime.now());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void processBookings(LocalDateTime dateTime) {
+        // If dateTime is not provided, use current date and time
+        LocalDateTime processDateTime = dateTime != null ? dateTime : LocalDateTime.now();
+        LocalDate processDate = processDateTime.toLocalDate();
+
+        // Get hour from the provided dateTime to determine which shifts to process
+        int currentHour = processDateTime.getHour();
+
+        // Get all bookings with PENDING status and start date up to the process date
+        List<BookingEntity> pendingBookings = bookingRepository.findAll().stream()
+                .filter(booking -> booking.getBookingStatus() == EBookingStatus.PENDING)
+                .filter(booking -> !booking.getStartDate().isAfter(processDate))
+                .collect(Collectors.toList());
+
+        // Filter bookings by shift based on execution time
+        List<BookingEntity> bookingsToProcess;
+        if (currentHour == 15) {
+            // At 15:00, only process MORNING bookings
+            bookingsToProcess = pendingBookings.stream()
+                    .filter(booking -> booking.getShift() == EShift.MORNING)
+                    .collect(Collectors.toList());
+        } else {
+            // At night, process both MORNING and NIGHT bookings
+            bookingsToProcess = pendingBookings;
+        }
+
+        // Update booking status based on amenity active status
+        for (BookingEntity booking : bookingsToProcess) {
+            AmenityEntity amenity = booking.getAmenity();
+            if (amenity.isActive()) {
+                booking.setBookingStatus(EBookingStatus.DONE);
+            } else {
+                booking.setBookingStatus(EBookingStatus.AUTOMATIC_CANCELLED);
+            }
+        }
+
+        // Save all updated bookings
+        if (!bookingsToProcess.isEmpty()) {
+            bookingRepository.saveAll(bookingsToProcess);
+        }
+    }
+
+    public BookingDto updateForAdmin(BookingDto bookingDto) throws EntityNotFoundException {
+        BookingEntity bookingToUpdate = bookingRepository
+              .findById(bookingDto.getBookingId())
+              .orElseThrow(() -> new EntityNotFoundException("La reserva no existe"));
+
+        bookingToUpdate.setBookingStatus(bookingDto.getBookingStatus());
+        bookingToUpdate.setStartDate(bookingDto.getStartDate());
+        return bookingMapper.convertEntityToDto(bookingRepository.save(bookingToUpdate));
+    }
+
+    public BookingDto cancelBookingById(Long bookingId) throws CustomGenericException, EntityNotFoundException {
+        BookingEntity bookingEntity = bookingRepository.findById(bookingId).orElseThrow(() -> new EntityNotFoundException("No existe esa reserva"));
+
+        LocalDate now = LocalDate.now();
+
+        if (bookingEntity.getStartDate().equals(now)) {
+            throw new CustomGenericException("No se puede eliminar una reserva en el día de su realización. "
+                  + "Las reservas solo pueden eliminarse con más de 24 horas de anticipación.");
+        }
+
+        bookingEntity.setBookingStatus(EBookingStatus.USER_CANCELLED);
+        return bookingMapper.convertEntityToDto(bookingRepository.save(bookingEntity));
     }
 }
