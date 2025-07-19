@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.utn.interactiveconsortium.dto.DepartmentDto;
+import com.utn.interactiveconsortium.exception.CustomGenericException;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.service.DepartmentService;
@@ -55,7 +56,8 @@ public class DepartmentController {
 
     @PutMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
-    public void updateDepartment(@RequestBody @Validated DepartmentDto departmentToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
+    public void updateDepartment(@RequestBody @Validated DepartmentDto departmentToUpdate)
+          throws EntityNotFoundException, EntityAlreadyExistsException, CustomGenericException {
         departmentService.updateDepartment(departmentToUpdate);
     }
 

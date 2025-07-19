@@ -8,6 +8,7 @@ import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.DepartmentEntity;
 import com.utn.interactiveconsortium.entity.PersonEntity;
 import com.utn.interactiveconsortium.enums.EConsortiumType;
+import com.utn.interactiveconsortium.exception.CustomGenericException;
 import com.utn.interactiveconsortium.exception.CustomIllegalArgumentException;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
@@ -102,7 +103,8 @@ public class DepartmentService {
          return String.valueOf((char) (number + 64));
       }
 
-    public void updateDepartment(DepartmentDto departmentToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
+    public void updateDepartment(DepartmentDto departmentToUpdate)
+          throws EntityNotFoundException, EntityAlreadyExistsException, CustomGenericException {
         boolean departmentExists = departmentRepository.existsById(departmentToUpdate.getDepartmentId());
 
         if (!departmentExists) {
@@ -135,6 +137,10 @@ public class DepartmentService {
                 ? personRepository.findById(departmentToUpdate.getResident().getPersonId())
                 .orElseThrow(() -> new EntityNotFoundException("Residente no encontrado"))
                 : null;
+
+        if (departmentToUpdate.getActive() && propietary == null) {
+            throw new CustomGenericException("El departamento no puede estar habilitado sin propietario");
+        }
 
         departmentToUpdateEntity.setCode(departmentToUpdate.getCode());
         departmentToUpdateEntity.setPropietary(propietary);
