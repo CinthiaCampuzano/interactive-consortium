@@ -20,6 +20,8 @@ import com.utn.interactiveconsortium.repository.BookingRepository;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingService {
@@ -248,15 +251,20 @@ public class BookingService {
         return bookingAvailableList;
     }
 
-    //Un administrador tiene que poder cancelar una reserva no importa si la misma fue concretada
-    @Scheduled(cron = "0 0 15,23 * * *")
+    //El proceso de actualizacion de reservas tiene que correr antes de la fecha de reserva.
+    //Para las de turno manana corre a las 7 y actualiza su estado
+    //Para las de turno tarde corre a las 16 y acualiza su estado
+//    @Scheduled(cron = "0 0 7,16 * * *")
+    @Scheduled(cron = "0 0/1 * * * *")
     @Transactional(rollbackFor = Exception.class)
     public void processBookings() {
-        processBookings(LocalDateTime.now());
+        log.info("Proceso de actualizacion de de reservas INICIADO");
+        int updatedBookings = processBookings(LocalDateTime.now());
+        log.info("Proceso de actualizacion de de reservas FINALIZADO. Se actualizaron {} reservas", updatedBookings);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void processBookings(LocalDateTime dateTime) {
+    public int processBookings(LocalDateTime dateTime) {
         // If dateTime is not provided, use current date and time
         LocalDateTime processDateTime = dateTime != null ? dateTime : LocalDateTime.now();
         LocalDate processDate = processDateTime.toLocalDate();
@@ -272,7 +280,7 @@ public class BookingService {
 
         // Filter bookings by shift based on execution time
         List<BookingEntity> bookingsToProcess;
-        if (currentHour == 15) {
+        if (currentHour < 15) {
             // At 15:00, only process MORNING bookings
             bookingsToProcess = pendingBookings.stream()
                     .filter(booking -> booking.getShift() == EShift.MORNING)
@@ -283,10 +291,12 @@ public class BookingService {
         }
 
         // Update booking status based on amenity active status
+        LocalDate period = LocalDate.now().withDayOfMonth(1);
         for (BookingEntity booking : bookingsToProcess) {
             AmenityEntity amenity = booking.getAmenity();
             if (amenity.isActive()) {
                 booking.setBookingStatus(EBookingStatus.DONE);
+                booking.setPeriod(period);
             } else {
                 booking.setBookingStatus(EBookingStatus.AUTOMATIC_CANCELLED);
             }
@@ -296,6 +306,8 @@ public class BookingService {
         if (!bookingsToProcess.isEmpty()) {
             bookingRepository.saveAll(bookingsToProcess);
         }
+
+        return bookingsToProcess.size();
     }
 
     public BookingDto updateForAdmin(BookingDto bookingDto) throws EntityNotFoundException {
