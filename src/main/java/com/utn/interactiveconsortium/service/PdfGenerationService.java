@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -55,7 +56,7 @@ public class PdfGenerationService {
       // 4. Llenar el reporte
       // Se usa periodConceptsDataSource como el datasource principal del reporte.
       // Si tu primera tabla está en la banda de detalle, esto funcionará bien.
-      JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, periodConceptsDataSource);
+      JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, new JREmptyDataSource(1));
 
       // 5. Exportar a PDF
       return JasperExportManager.exportReportToPdf(jasperPrint);

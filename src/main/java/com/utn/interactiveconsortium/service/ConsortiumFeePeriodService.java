@@ -5,6 +5,7 @@ import static com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus.PEN
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,11 @@ import com.utn.interactiveconsortium.config.MinioConfig;
 import com.utn.interactiveconsortium.dto.ConsortiumFeePeriodDto;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodEntity;
+import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodItemEntity;
+import com.utn.interactiveconsortium.enums.EConsortiumFeeConceptType;
+import com.utn.interactiveconsortium.enums.EConsortiumFeeDistributionType;
 import com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus;
+import com.utn.interactiveconsortium.enums.EConsortiumFeeType;
 import com.utn.interactiveconsortium.exception.CustomGenericException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.ConsortiumFeePeriodMapper;
@@ -51,6 +56,8 @@ public class ConsortiumFeePeriodService {
    private final MinioUtils minioUtils;
 
    private final ConsortiumRepository consortiumRepository;
+
+   private final BookingService bookingService;
 
    public Page<ConsortiumFeePeriodDto> query(
          Long consortiumId,
@@ -144,5 +151,22 @@ public class ConsortiumFeePeriodService {
       consortiumFeePeriod.setPdfFilePath(null);
       consortiumFeePeriod.setNotes(null);
       return consortiumFeePeriodMapper.convertEntityToDto(consortiumFeePeriodRepository.save(consortiumFeePeriod));
+   }
+
+   public ConsortiumFeePeriodItemEntity createBookingConceptFor(ConsortiumFeePeriodEntity consortiumFeePeriod) {
+      LocalDate period = consortiumFeePeriod.getPeriodDate();
+      ConsortiumEntity consortium = consortiumFeePeriod.getConsortium();
+      BigDecimal bookingAmount = bookingService.getBookingTotalAmountFor(consortium, period);
+
+      return ConsortiumFeePeriodItemEntity
+            .builder()
+            .consortiumFeePeriod(consortiumFeePeriod)
+            .name("Uso de Espacio Comunes")
+            .description("Uso de Espacio Comunes")
+            .distributionType(EConsortiumFeeDistributionType.AMENITY_USAGE)
+            .conceptType(EConsortiumFeeConceptType.AMENITY_USE)
+            .feeType(EConsortiumFeeType.COST)
+            .amount(bookingAmount)
+            .build();
    }
 }

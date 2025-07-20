@@ -1,7 +1,6 @@
 package com.utn.interactiveconsortium.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import jakarta.validation.Valid;
 

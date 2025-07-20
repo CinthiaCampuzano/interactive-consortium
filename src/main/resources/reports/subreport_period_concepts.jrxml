@@ -33,7 +33,7 @@
         </band>
     </columnHeader>
     <detail>
-        <band height="40">
+        <band height="20">
             <textField>
                 <reportElement x="0" y="0" width="150" height="20" uuid="d54677a7-a504-49f0-bf78-75f4b4ad614f"/>
                 <textElement verticalAlignment="Middle"/>

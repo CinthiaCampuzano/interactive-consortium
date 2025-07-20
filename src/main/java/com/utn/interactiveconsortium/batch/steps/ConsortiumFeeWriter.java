@@ -18,11 +18,11 @@ import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodItemEntity;
 import com.utn.interactiveconsortium.entity.DepartmentEntity;
 import com.utn.interactiveconsortium.entity.DepartmentFeeEntity;
 import com.utn.interactiveconsortium.entity.DepartmentFeeItemEntity;
-import com.utn.interactiveconsortium.enums.EConsortiumFeeDistributionType;
 import com.utn.interactiveconsortium.enums.EPaymentStatus;
 import com.utn.interactiveconsortium.repository.ConsortiumFeePeriodRepository;
 import com.utn.interactiveconsortium.repository.DepartmentFeeRepository;
 import com.utn.interactiveconsortium.repository.DepartmentRepository;
+import com.utn.interactiveconsortium.service.BookingService;
 import com.utn.interactiveconsortium.service.PdfGenerationService;
 import com.utn.interactiveconsortium.util.MinioUtils;
 
@@ -38,6 +38,8 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
 
    private final DepartmentFeeRepository departmentFeeRepository;
 
+   private final BookingService bookingService;
+
    private final PdfGenerationService pdfGenerationService;
 
    private final MinioUtils minioUtils;
@@ -50,7 +52,6 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
    @Override
    public void write(Chunk<? extends ConsortiumFeeWrapper> chunk) throws Exception {
       for(ConsortiumFeeWrapper wrapper : chunk.getItems()) {
-         //TODO persistir
          ConsortiumFeePeriodEntity consortiumFeePeriod = wrapper.getConsortiumFeePeriod();
          List<ConsortiumFeePeriodItemEntity> periodItems = wrapper.getPeriodConcepts();
          consortiumFeePeriod.setFeePeriodItems(periodItems);
@@ -90,7 +91,7 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
             BigDecimal departmentAmount = BigDecimal.ZERO;
 
             for (ConsortiumFeePeriodItemEntity item : consortiumFeePeriod.getFeePeriodItems()) {
-               BigDecimal amount = calculateItemAmount(item.getAmount(), numActiveDepartments, item.getDistributionType());
+               BigDecimal amount = calculateItemAmount(item, department, activeDepartments);
                departmentAmount = departmentAmount.add(amount);
                DepartmentFeeItemEntity departmentFeeItem = DepartmentFeeItemEntity
                      .builder()
@@ -147,9 +148,13 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
       );
    }
 
-   private BigDecimal calculateItemAmount(BigDecimal amount, Integer numberOfDepartments, EConsortiumFeeDistributionType distributionType) {
-      return switch (distributionType) {
-         case EQUAL_SPLIT -> amount.divide(new BigDecimal(numberOfDepartments), 2, BigDecimal.ROUND_HALF_UP);
+   private BigDecimal calculateItemAmount(ConsortiumFeePeriodItemEntity periodItem, DepartmentEntity department, List<DepartmentEntity> activeDepartments) {
+      BigDecimal amount = periodItem.getAmount();
+      int activeDepartmentsQuantity = activeDepartments.size();
+
+      return switch (periodItem.getDistributionType()) {
+         case EQUAL_SPLIT -> amount.divide(new BigDecimal(activeDepartmentsQuantity), 2, BigDecimal.ROUND_HALF_UP);
+         case AMENITY_USAGE -> bookingService.getDepartmentBookingCostForPeriod(department, periodItem.getConsortiumFeePeriod().getPeriodDate());
          default -> amount;
       };
    }

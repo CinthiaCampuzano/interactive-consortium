@@ -36,9 +36,9 @@ public class BookingEntity {
     @JoinColumn(name = "amenity_id")
     private AmenityEntity amenity;
 
-    @ManyToOne
-    @JoinColumn(name = "resident_id")
-    private PersonEntity resident;
+//    @ManyToOne
+//    @JoinColumn(name = "resident_id")
+//    private PersonEntity resident;
 
     @ManyToOne
     @JoinColumn(name = "department_id")

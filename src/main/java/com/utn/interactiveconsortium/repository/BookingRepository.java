@@ -40,7 +40,7 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long> {
     @Query("""
             SELECT b FROM BookingEntity b
             WHERE b.amenity.consortium.consortiumId = :consortiumId
-            AND b.resident.personId = :residentId\s
+            AND b.department.resident.personId = :residentId
             AND (:amenityId IS NULL OR b.amenity.amenityId = :amenityId)
             AND (:shift IS NULL OR b.shift = :shift)
             AND (:departmentCode IS NULL OR b.department.code = :departmentCode)
@@ -64,6 +64,10 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long> {
     @Query("SELECT b FROM BookingEntity b "
           + "WHERE b.department.departmentId = :departmentId " +
             "AND b.amenity.amenityId = :amenityId " +
+            "AND ( "
+          + "   b.bookingStatus = com.utn.interactiveconsortium.enums.EBookingStatus.PENDING " +
+            "   OR b.bookingStatus = com.utn.interactiveconsortium.enums.EBookingStatus.DONE "
+          + ")" +
             "AND b.startDate BETWEEN :startDate AND :endDate")
     List<BookingEntity> findByDepartmentIdAndAmenityIdAndStartDateBetween
             (@Param("departmentId") Long departmentId,
@@ -84,4 +88,21 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long> {
                 )
     """)
     List<BookingEntity> findActiveBookingsFor(List<DepartmentEntity> departments);
+
+    @Query("""
+        SELECT b
+        FROM BookingEntity b
+        WHERE
+            b.department.consortium.consortiumId = :consortiumId
+            AND (:departmentId IS NULL OR b.department.departmentId = :departmentId)
+            AND b.department.active
+            AND b.bookingStatus = :status
+            AND b.period = :period
+    """)
+    List<BookingEntity> findAllBy(
+          Long consortiumId,
+          Long departmentId,
+          EBookingStatus status,
+          LocalDate period
+    );
 }

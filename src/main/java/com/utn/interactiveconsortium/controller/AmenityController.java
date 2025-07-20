@@ -1,20 +1,32 @@
 package com.utn.interactiveconsortium.controller;
 
-import com.utn.interactiveconsortium.dto.AmenityDto;
-import com.utn.interactiveconsortium.dto.ConsortiumDto;
-import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
-import com.utn.interactiveconsortium.exception.EntityNotFoundException;
-import com.utn.interactiveconsortium.service.AmenityService;
+import java.io.IOException;
+
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import com.utn.interactiveconsortium.dto.AmenityDto;
+import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
+import com.utn.interactiveconsortium.exception.EntityNotFoundException;
+import com.utn.interactiveconsortium.service.AmenityService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping(value = "Amenities")
@@ -41,13 +53,13 @@ public class AmenityController {
 
     @PostMapping
     @PreAuthorize(RESTRICTED_ROLES)
-    public AmenityDto createAmenity(@RequestBody AmenityDto newAmenity) throws EntityAlreadyExistsException, EntityNotFoundException {
+    public AmenityDto createAmenity(@RequestBody @Valid AmenityDto newAmenity) throws EntityAlreadyExistsException, EntityNotFoundException {
         return amenityService.createAmenity(newAmenity);
     }
 
     @PutMapping
     @PreAuthorize(RESTRICTED_ROLES)
-    public void updateAmenity(@RequestBody AmenityDto amenityToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
+    public void updateAmenity(@RequestBody @Valid AmenityDto amenityToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
         amenityService.updateAmenity(amenityToUpdate);
     }
 

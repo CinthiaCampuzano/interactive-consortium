@@ -28,6 +28,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -170,7 +171,7 @@ public class BookingService {
         BookingEntity bookingEntity = bookingMapper.convertDtoToEntity(bookingDto);
 
         bookingEntity.setAmenity(amenity);
-        bookingEntity.setResident(loggedPerson);
+//        bookingEntity.setResident(loggedPerson);
         bookingEntity.setDepartment(department);
         bookingEntity.setBookingCost(amenity.getCostOfUse());
         bookingEntity.setBookingStatus(EBookingStatus.PENDING);
@@ -211,6 +212,7 @@ public class BookingService {
         List<DepartmentEntity> departments = consortium
               .getDepartments()
               .stream()
+              .filter(departmentEntity -> departmentEntity.getResident() != null)
               .filter(departmentEntity -> departmentEntity.getResident().getPersonId().equals(loggedPerson.getPersonId()))
               .toList();
 
@@ -332,5 +334,28 @@ public class BookingService {
 
         bookingEntity.setBookingStatus(EBookingStatus.USER_CANCELLED);
         return bookingMapper.convertEntityToDto(bookingRepository.save(bookingEntity));
+    }
+
+    public BigDecimal getBookingTotalAmountFor(ConsortiumEntity consortium, LocalDate period) {
+        List<BookingEntity> bookings = bookingRepository.findAllBy(consortium.getConsortiumId(), null, EBookingStatus.DONE, period);
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        for (BookingEntity booking : bookings) {
+            totalAmount = totalAmount.add(booking.getBookingCost());
+        }
+        return totalAmount;
+    }
+
+    public BigDecimal getDepartmentBookingCostForPeriod(DepartmentEntity department, LocalDate period) {
+        List<BookingEntity> bookings = bookingRepository.findAllBy(
+              department.getConsortium().getConsortiumId(),
+              department.getDepartmentId(),
+              EBookingStatus.DONE,
+              period
+        );
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        for (BookingEntity booking : bookings) {
+            totalAmount = totalAmount.add(booking.getBookingCost());
+        }
+        return totalAmount;
     }
 }
