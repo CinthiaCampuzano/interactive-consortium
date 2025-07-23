@@ -64,10 +64,11 @@ public class DepartmentService {
                 .orElseThrow(() -> new EntityNotFoundException("Residente no encontrado"))
                 : null;
 
-        newDepartmentEntity.setConsortium(consortium);
         newDepartmentEntity.setPropietary(propietary);
         newDepartmentEntity.setResident(resident);
-        newDepartmentEntity.setActive(true);
+        newDepartmentEntity.setConsortium(consortium);
+        boolean isActive = propietary != null;
+        newDepartmentEntity.setActive(isActive);
 
         departmentRepository.save(newDepartmentEntity);
 
@@ -88,7 +89,7 @@ public class DepartmentService {
                 DepartmentEntity newDepartment = new DepartmentEntity();
                 newDepartment.setCode(i + getLetterForDepartment(j));
                 newDepartment.setConsortium(consortiumEntity);
-                newDepartment.setActive(true);
+                newDepartment.setActive(false);
                 departments.add(newDepartment);
             }
         }
@@ -151,13 +152,11 @@ public class DepartmentService {
     }
 
     public void deleteDepartment(Long idDepartment) throws EntityNotFoundException {
-        boolean departmentExists = departmentRepository.existsById(idDepartment);
+        DepartmentEntity department = departmentRepository
+              .findById(idDepartment)
+              .orElseThrow(() -> new EntityNotFoundException("No existe ese departamento"));
 
-        if (!departmentExists) {
-            throw new EntityNotFoundException("No existe ese departamento");
-        }
-
-        departmentRepository.deleteById(idDepartment);
+        departmentRepository.delete(department);
     }
 
 }

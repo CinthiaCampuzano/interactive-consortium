@@ -46,4 +46,8 @@ public class PaymentEntity {
    private String referenceNumber;
 
    private String notes;
+
+   private String receiptFileName;
+
+   private String transferFileName;
 }

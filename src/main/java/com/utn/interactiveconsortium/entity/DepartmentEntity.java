@@ -36,6 +36,12 @@ public class DepartmentEntity {
 //    @OneToMany(mappedBy = "department")
 //    private List<MaintenanceFeePaymentEntity> maintenanceFeePayments;
 
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DepartmentFeeEntity> departmentFees;
+
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BookingEntity> bookings;
+
     private Boolean active;
 
 }
