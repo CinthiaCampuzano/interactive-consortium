@@ -1,14 +1,17 @@
 package com.utn.interactiveconsortium.repository;
 
-import com.utn.interactiveconsortium.entity.ConsortiumEntity;
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
-import java.util.List;
+import com.utn.interactiveconsortium.entity.ConsortiumEntity;
+import com.utn.interactiveconsortium.entity.PersonEntity;
 
 public interface ConsortiumRepository extends JpaRepository<ConsortiumEntity, Long> {
 
@@ -65,6 +68,41 @@ public interface ConsortiumRepository extends JpaRepository<ConsortiumEntity, Lo
     List<ConsortiumEntity> getAllNeedFeePeriodGeneration(
           @Param("period") LocalDate period,
           @Param("consortiumIds") List<Long> consortiumIds
+    );
+
+    @Modifying
+    @Query("""
+        UPDATE DepartmentEntity dp
+        SET dp.propietary = null, dp.active = false
+        WHERE dp.consortium = :consortium
+        AND dp.propietary = :person
+    """)
+    int removePropietaryFromDepartments(
+          @Param("consortium") ConsortiumEntity consortium,
+          @Param("person")PersonEntity person
+    );
+
+    @Modifying
+    @Query("""
+        UPDATE DepartmentEntity dp
+        SET dp.resident = null
+        WHERE dp.consortium = :consortium
+        AND dp.resident = :person
+    """)
+    int removeResidentFromDepartments(
+          @Param("consortium") ConsortiumEntity consortium,
+          @Param("person")PersonEntity person
+    );
+
+    @Modifying
+    @Query("""
+        DELETE FROM IssueReportEntity i
+        WHERE i.consortium = :consortium
+        AND i.person = :person
+    """)
+    int deleteAllIssuerReportFromPerson(
+          @Param("consortium") ConsortiumEntity consortium,
+          @Param("person")PersonEntity person
     );
 }
 
