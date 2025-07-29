@@ -25,7 +25,7 @@ public class ConsortiumFeeScheduler {
    @Qualifier("consortiumFeeJob")
    private final Job consortiumFeeJob;
 
-   @Scheduled(cron = "0 */2 * * * ?")
+   @Scheduled(cron = "0 */1 * * * ?")
    public void runConsortiumFeeJob() {
       try {
          //TODO agregar el periodo

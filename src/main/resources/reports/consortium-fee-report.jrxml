@@ -5,6 +5,9 @@
     <parameter name="consortiumName" class="java.lang.String"/>
     <parameter name="period" class="java.lang.String"/>
     <parameter name="totalAmount" class="java.math.BigDecimal"/>
+    <parameter name="monthNameSpanish" class="java.lang.String"/>
+    <parameter name="year" class="java.lang.String"/>
+    <parameter name="dueDate" class="java.lang.String"/>
     <parameter name="PERIOD_CONCEPTS_DATASOURCE" class="net.sf.jasperreports.engine.JRDataSource"/>
     <parameter name="DEPARTMENT_FEES_DATASOURCE" class="net.sf.jasperreports.engine.JRDataSource"/>
     <parameter name="periodSubReport" class="net.sf.jasperreports.engine.JasperReport"/>
@@ -12,17 +15,17 @@
     <field name="amount" class="java.math.BigDecimal"/>
     <title>
         <band height="50" splitType="Stretch">
-            <staticText>
+            <textField>
                 <reportElement x="0" y="10" width="555" height="30" uuid="1a2b3c4d-5e6f-7890-1234-fedcba987654"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
-                    <font size="20" isBold="true"/>
+                    <font size="16" isBold="true"/>
                 </textElement>
-                <text><![CDATA[Resumen de Expensas]]></text>
-            </staticText>
+                <textFieldExpression><![CDATA["EXPENSAS DEL CONSORCIO " + $P{consortiumName} + " - PERIODO " + $P{monthNameSpanish} + "/" + $P{year}]]></textFieldExpression>
+            </textField>
         </band>
     </title>
     <pageHeader>
-        <band height="60" splitType="Stretch">
+        <band height="80" splitType="Stretch">
             <staticText>
                 <reportElement x="0" y="0" width="80" height="20" uuid="b1c2d3e4-f567-8901-2345-abcdef123456"/>
                 <textElement verticalAlignment="Middle">
@@ -45,10 +48,22 @@
             <textField>
                 <reportElement x="80" y="20" width="200" height="20" uuid="e4f56789-0123-4567-8901-def123456789"/>
                 <textElement verticalAlignment="Middle"/>
-                <textFieldExpression><![CDATA[$P{period}]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$P{monthNameSpanish} + "/" + $P{year}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="40" width="80" height="20" uuid="f5678901-2345-6789-0123-ef1234567890"/>
+                <textElement verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Vencimiento:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="80" y="40" width="200" height="20" uuid="67890123-4567-8901-2345-f1234567890a"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{dueDate}]]></textFieldExpression>
             </textField>
             <line>
-                <reportElement x="0" y="55" width="555" height="1" uuid="f6a7b8c9-d0e1-f2a3-b4c5-d6e7f8a9b0c1"/>
+                <reportElement x="0" y="70" width="555" height="1" uuid="f6a7b8c9-d0e1-f2a3-b4c5-d6e7f8a9b0c1"/>
             </line>
         </band>
     </pageHeader>

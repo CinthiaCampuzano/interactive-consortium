@@ -1,10 +1,19 @@
 package com.utn.interactiveconsortium.batch.steps;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import jakarta.mail.MessagingException;
 
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
@@ -18,12 +27,15 @@ import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodItemEntity;
 import com.utn.interactiveconsortium.entity.DepartmentEntity;
 import com.utn.interactiveconsortium.entity.DepartmentFeeEntity;
 import com.utn.interactiveconsortium.entity.DepartmentFeeItemEntity;
+import com.utn.interactiveconsortium.entity.PersonEntity;
 import com.utn.interactiveconsortium.enums.EPaymentStatus;
 import com.utn.interactiveconsortium.repository.ConsortiumFeePeriodRepository;
 import com.utn.interactiveconsortium.repository.DepartmentFeeRepository;
 import com.utn.interactiveconsortium.repository.DepartmentRepository;
 import com.utn.interactiveconsortium.service.BookingService;
+import com.utn.interactiveconsortium.service.PaymentService;
 import com.utn.interactiveconsortium.service.PdfGenerationService;
+import com.utn.interactiveconsortium.util.EmailService;
 import com.utn.interactiveconsortium.util.MinioUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -41,6 +53,10 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
    private final BookingService bookingService;
 
    private final PdfGenerationService pdfGenerationService;
+
+   private final PaymentService paymentService;
+
+   private final EmailService emailService;
 
    private final MinioUtils minioUtils;
 
@@ -116,35 +132,162 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
                departmentFeeOfPeriod // La lista de DepartmentFeeEntity que ya calculaste
          );
 
-         // Generar el PDF usando el JasperWrapper
-         byte[] pdfBytes = pdfGenerationService.generateConsortiumFeePdf(jasperReportData);
+         // Generar el PDF general del consorcio
+         byte[] consortiumPdfBytes = pdfGenerationService.generateConsortiumFeePdf(jasperReportData);
 
          // Subir a MinIO
-         String filePath = generatePdfPath(consortiumFeePeriod);
+         String consortiumFilePath = generateConsortiumPdfPath(consortiumFeePeriod);
          minioUtils.uploadFile(
                minioConfig.getBucketName(),
-               filePath,
-               new ByteArrayInputStream(pdfBytes)
+               consortiumFilePath,
+               new ByteArrayInputStream(consortiumPdfBytes)
          );
-         log.info("PDF for consortium {} uploaded to MinIO at: {}", consortiumFeePeriod.getConsortium().getConsortiumId(), filePath);
+         log.info("PDF for consortium {} uploaded to MinIO at: {}", consortiumFeePeriod.getConsortium().getConsortiumId(), consortiumFilePath);
 
          // Guardar la ruta en la entidad
-         consortiumFeePeriod.setPdfFilePath(filePath);
+         consortiumFeePeriod.setPdfFilePath(consortiumFilePath);
          consortiumFeePeriodRepository.save(consortiumFeePeriod);
 
-         //TODO validar que esto si obtenga los departamentos y luego generar los DepartmentFee y DepartmentFeeItem
-
+         // Generar PDFs individuales para cada departamento
+         Map<String, List<byte[]>> emailAttachments = new HashMap<>();
+         Map<String, String> emailRecipientNames = new HashMap<>();
+         
+         for (DepartmentFeeEntity departmentFee : departmentFeeOfPeriod) {
+            // Generar PDF para el departamento
+            byte[] departmentPdfBytes = pdfGenerationService.generateDepartmentFeePdf(departmentFee);
+            
+            // Subir a MinIO
+            String departmentFilePath = generateDepartmentPdfPath(departmentFee);
+            ByteArrayInputStream departmentPdfStream = new ByteArrayInputStream(departmentPdfBytes);
+            minioUtils.uploadFile(
+                  minioConfig.getBucketName(),
+                  departmentFilePath,
+                  departmentPdfStream
+            );
+            log.info("PDF for department {} uploaded to MinIO at: {}", 
+                  departmentFee.getDepartment().getCode(), departmentFilePath);
+            
+            // Recolectar destinatarios de correo
+            collectEmailRecipients(departmentFee, emailAttachments, emailRecipientNames, departmentPdfBytes);
+         }
+         
+         // Enviar correos electrónicos
+         sendEmails(consortiumFeePeriod, emailAttachments, emailRecipientNames, consortiumPdfBytes);
       }
    }
 
-   private String generatePdfPath(ConsortiumFeePeriodEntity period) {
+   private void collectEmailRecipients(DepartmentFeeEntity departmentFee, 
+                                      Map<String, List<byte[]>> emailAttachments,
+                                      Map<String, String> emailRecipientNames,
+                                      byte[] departmentPdfBytes) {
+      DepartmentEntity department = departmentFee.getDepartment();
+      PersonEntity propietary = department.getPropietary();
+      PersonEntity resident = department.getResident();
+      
+      // Agregar propietario
+      if (propietary != null && propietary.getMail() != null && !propietary.getMail().isEmpty()) {
+         String email = propietary.getMail();
+         emailRecipientNames.put(email, propietary.getName() + " " + propietary.getLastName());
+         emailAttachments.computeIfAbsent(email, k -> new ArrayList<>())
+                        .add(departmentPdfBytes);
+      }
+      
+      // Agregar residente (si es diferente del propietario)
+      if (resident != null && resident.getMail() != null && !resident.getMail().isEmpty() && 
+          (propietary == null || !resident.getMail().equals(propietary.getMail()))) {
+         String email = resident.getMail();
+         emailRecipientNames.put(email, resident.getName() + " " + resident.getLastName());
+         emailAttachments.computeIfAbsent(email, k -> new ArrayList<>())
+                        .add(departmentPdfBytes);
+      }
+   }
+   
+   private void sendEmails(ConsortiumFeePeriodEntity consortiumFeePeriod,
+                          Map<String, List<byte[]>> emailAttachments,
+                          Map<String, String> emailRecipientNames,
+                          byte[] consortiumPdfBytes) {
+      String consortiumName = consortiumFeePeriod.getConsortium().getName();
+      LocalDate periodDate = consortiumFeePeriod.getPeriodDate();
+      String monthNameSpanish = paymentService.getMonthName(periodDate);
+      String year = String.valueOf(periodDate.getYear());
+      
+      String subject = String.format("Expensas del Consorcio %s - Periodo %s/%s", 
+                                    consortiumName, monthNameSpanish, year);
+      
+      for (Map.Entry<String, List<byte[]>> entry : emailAttachments.entrySet()) {
+         String email = entry.getKey();
+         List<byte[]> attachments = entry.getValue();
+         String recipientName = emailRecipientNames.get(email);
+         
+         try {
+            // Texto del correo
+            String emailText = String.format(
+                  "Estimado/a %s,\n\n" +
+                  "Adjunto encontrará las expensas del Consorcio %s correspondientes al periodo %s/%s.\n\n" +
+                  "Saludos cordiales,\n" +
+                  "Administración del Consorcio",
+                  recipientName, consortiumName, monthNameSpanish, year);
+            
+            // Enviar correo con adjuntos
+            sendEmailWithAttachments(email, subject, emailText, attachments, consortiumPdfBytes);
+            
+            log.info("Email sent successfully to: {}", email);
+         } catch (Exception e) {
+            log.error("Error sending email to {}: {}", email, e.getMessage());
+         }
+      }
+   }
+   
+   private void sendEmailWithAttachments(String email, String subject, String text, 
+                                        List<byte[]> departmentPdfs,
+                                        byte[] consortiumPdf) throws MessagingException, IOException {
+      // Convertir la lista de destinatarios a un array
+      String[] recipients = new String[] { email };
+      
+      // Preparar adjuntos
+      Map<String, InputStream> attachments = new HashMap<>();
+      
+      // Adjuntar PDF general del consorcio
+      attachments.put("expensas_consorcio.pdf", new ByteArrayInputStream(consortiumPdf));
+      
+      // Adjuntar PDFs de departamentos
+      int i = 1;
+      for (byte[] departmentPdf : departmentPdfs) {
+         attachments.put("detalle_expensas_" + i + ".pdf", new ByteArrayInputStream(departmentPdf));
+         i++;
+      }
+      
+      // Enviar correo con adjuntos
+      emailService.sendMessageWithAttachments(recipients, subject, text, attachments);
+   }
+
+   private String generateConsortiumPdfPath(ConsortiumFeePeriodEntity period) {
       LocalDate date = period.getPeriodDate();
-      return String.format("consortium-fees/%d/%d/%d/expensas_%d-%d.pdf",
+      String month = String.valueOf(date.getMonth());
+      String year = String.valueOf(date.getYear());
+      String dateForFileName = month + year;
+      return String.format("consortium-fees/%d/%d/%d/expensas_%s_%s.pdf",
             period.getConsortium().getConsortiumId(),
             date.getYear(),
             date.getMonthValue(),
+            period.getConsortium().getName(),
+            dateForFileName
+      );
+   }
+   
+   private String generateDepartmentPdfPath(DepartmentFeeEntity departmentFee) {
+      ConsortiumFeePeriodEntity period = departmentFee.getConsortiumFeePeriod();
+      LocalDate date = period.getPeriodDate();
+      String month = String.valueOf(date.getMonth());
+      String year = String.valueOf(date.getYear());
+      String dateForFileName = month + year;
+      return String.format("consortium-fees/%d/%d/%d/department/%d/detalle_expensas_%s_%s.pdf",
             period.getConsortium().getConsortiumId(),
-            date.toEpochDay()
+            date.getYear(),
+            date.getMonthValue(),
+            departmentFee.getDepartment().getDepartmentId(),
+            departmentFee.getDepartment().getCode(),
+            dateForFileName
       );
    }
 
