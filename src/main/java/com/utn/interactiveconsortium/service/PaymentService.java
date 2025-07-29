@@ -165,7 +165,7 @@ public class PaymentService {
            emailService.sendMessageWithAttachment(mails.toArray(new String[0]), subject, null, fileName, file);
        }
 
-       private String getMonthName(LocalDate period) {
+       public String getMonthName(LocalDate period) {
            switch (period.getMonthValue()) {
                case 1:
                    return "Enero";

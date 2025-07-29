@@ -82,9 +82,9 @@ public class BookingService {
 
     public List<DateShiftDto> getAvailableDates(Long idAmenity) throws EntityNotFoundException {
 
-        boolean existsAmeneity = amenityRepository.existsById(idAmenity);
+        boolean existsAmenity = amenityRepository.existsById(idAmenity);
 
-        if (!existsAmeneity) {
+        if (!existsAmenity) {
             throw new EntityNotFoundException("No existe ese espacio comun");
         }
 
@@ -95,7 +95,7 @@ public class BookingService {
         allDatesShifts.addAll(generateAllDatesShiftsInRange(startDate, endDate, EShift.MORNING));
         allDatesShifts.addAll(generateAllDatesShiftsInRange(startDate, endDate, EShift.NIGHT));
 
-        List<BookingEntity> bookings = bookingRepository.findByAmenity_AmenityId(idAmenity);
+        List<BookingEntity> bookings = bookingRepository.findByAmenity_AmenityIdAndBookingStatus(idAmenity, EBookingStatus.PENDING);
         List<DateShiftDto> bookedDatesShifts = bookings
               .stream()
               .map(booking -> DateShiftDto.builder().date(booking.getStartDate()).shift(booking.getShift()).build())

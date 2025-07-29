@@ -59,7 +59,7 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long> {
           Pageable pageable
     );
 
-    List<BookingEntity> findByAmenity_AmenityId(Long amenityId);
+    List<BookingEntity> findByAmenity_AmenityIdAndBookingStatus(Long amenityAmenityId, EBookingStatus bookingStatus);
 
     @Query("SELECT b FROM BookingEntity b "
           + "WHERE b.department.departmentId = :departmentId " +
