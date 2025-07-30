@@ -55,6 +55,8 @@ public class DepartmentFeeEntity {
 
    private LocalDate dueDate;
 
+   private String pdfFilePath;
+
    @Enumerated(EnumType.STRING)
    private EPaymentStatus paymentStatus;
 

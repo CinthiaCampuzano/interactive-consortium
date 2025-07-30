@@ -147,17 +147,24 @@ public class PdfGenerationService {
    }
    
    private List<Map<String, Object>> prepareDepartmentFeeItems(List<DepartmentFeeItemEntity> feeItems) {
-      return feeItems.stream().map(item -> {
-         Map<String, Object> itemMap = new HashMap<>();
-         ConsortiumFeePeriodItemEntity periodItem = item.getConsortiumFeePeriodItem();
-         
-         itemMap.put("name", periodItem.getName());
-         itemMap.put("description", periodItem.getDescription());
-         itemMap.put("amount", item.getAmount());
-         itemMap.put("conceptType", periodItem.getConceptType());
-         
-         return itemMap;
-      }).collect(Collectors.toList());
+      return feeItems
+            .stream()
+            .sorted((o1, o2) -> {
+               EConsortiumFeeConceptType conceptType1 = o1.getConsortiumFeePeriodItem().getConceptType();
+               EConsortiumFeeConceptType conceptType2 = o2.getConsortiumFeePeriodItem().getConceptType();
+               return conceptType1.compareTo(conceptType2);
+            })
+            .map(item -> {
+               Map<String, Object> itemMap = new HashMap<>();
+               ConsortiumFeePeriodItemEntity periodItem = item.getConsortiumFeePeriodItem();
+
+               itemMap.put("name", periodItem.getName());
+               itemMap.put("description", periodItem.getDescription());
+               itemMap.put("amount", item.getAmount());
+               itemMap.put("conceptType", periodItem.getConceptType().singularTranslateToSpanish());
+
+               return itemMap;
+            }).collect(Collectors.toList());
    }
    
    private Map<EConsortiumFeeConceptType, BigDecimal> calculateAmountsByCategory(List<DepartmentFeeItemEntity> feeItems) {

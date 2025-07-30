@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import jakarta.mail.MessagingException;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
@@ -149,7 +150,7 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
          consortiumFeePeriodRepository.save(consortiumFeePeriod);
 
          // Generar PDFs individuales para cada departamento
-         Map<String, List<byte[]>> emailAttachments = new HashMap<>();
+         Map<String, List<Pair<String, byte[]>>> emailAttachments = new HashMap<>();
          Map<String, String> emailRecipientNames = new HashMap<>();
          
          for (DepartmentFeeEntity departmentFee : departmentFeeOfPeriod) {
@@ -164,32 +165,42 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
                   departmentFilePath,
                   departmentPdfStream
             );
+            departmentFee.setPdfFilePath(departmentFilePath);
             log.info("PDF for department {} uploaded to MinIO at: {}", 
                   departmentFee.getDepartment().getCode(), departmentFilePath);
-            
+
+            // Extraer el nombre del archivo de la ruta para usarlo en el correo
+            String filename = departmentFilePath.substring(departmentFilePath.lastIndexOf('/') + 1);
+
             // Recolectar destinatarios de correo
-            collectEmailRecipients(departmentFee, emailAttachments, emailRecipientNames, departmentPdfBytes);
+            collectEmailRecipients(departmentFee, emailAttachments, emailRecipientNames, departmentPdfBytes, filename);
          }
+         departmentFeeRepository.saveAll(departmentFeeOfPeriod);
          
          // Enviar correos electrónicos
          sendEmails(consortiumFeePeriod, emailAttachments, emailRecipientNames, consortiumPdfBytes);
       }
    }
 
-   private void collectEmailRecipients(DepartmentFeeEntity departmentFee, 
-                                      Map<String, List<byte[]>> emailAttachments,
-                                      Map<String, String> emailRecipientNames,
-                                      byte[] departmentPdfBytes) {
+   private void collectEmailRecipients(
+         DepartmentFeeEntity departmentFee,
+         Map<String, List<Pair<String, byte[]>>> emailAttachments,
+         Map<String, String> emailRecipientNames,
+         byte[] departmentPdfBytes,
+         String attachmentFilename
+   ) {
       DepartmentEntity department = departmentFee.getDepartment();
       PersonEntity propietary = department.getPropietary();
       PersonEntity resident = department.getResident();
-      
+
+      Pair<String, byte[]> attachment = Pair.of(attachmentFilename, departmentPdfBytes);
+
       // Agregar propietario
       if (propietary != null && propietary.getMail() != null && !propietary.getMail().isEmpty()) {
          String email = propietary.getMail();
          emailRecipientNames.put(email, propietary.getName() + " " + propietary.getLastName());
          emailAttachments.computeIfAbsent(email, k -> new ArrayList<>())
-                        .add(departmentPdfBytes);
+                        .add(attachment);
       }
       
       // Agregar residente (si es diferente del propietario)
@@ -198,12 +209,12 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
          String email = resident.getMail();
          emailRecipientNames.put(email, resident.getName() + " " + resident.getLastName());
          emailAttachments.computeIfAbsent(email, k -> new ArrayList<>())
-                        .add(departmentPdfBytes);
+                        .add(attachment);
       }
    }
    
    private void sendEmails(ConsortiumFeePeriodEntity consortiumFeePeriod,
-                          Map<String, List<byte[]>> emailAttachments,
+                          Map<String, List<Pair<String, byte[]>>> emailAttachments,
                           Map<String, String> emailRecipientNames,
                           byte[] consortiumPdfBytes) {
       String consortiumName = consortiumFeePeriod.getConsortium().getName();
@@ -214,19 +225,13 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
       String subject = String.format("Expensas del Consorcio %s - Periodo %s/%s", 
                                     consortiumName, monthNameSpanish, year);
       
-      for (Map.Entry<String, List<byte[]>> entry : emailAttachments.entrySet()) {
+      for (Map.Entry<String, List<Pair<String, byte[]>>> entry : emailAttachments.entrySet()) {
          String email = entry.getKey();
-         List<byte[]> attachments = entry.getValue();
+         List<Pair<String, byte[]>> attachments = entry.getValue();
          String recipientName = emailRecipientNames.get(email);
          
          try {
-            // Texto del correo
-            String emailText = String.format(
-                  "Estimado/a %s,\n\n" +
-                  "Adjunto encontrará las expensas del Consorcio %s correspondientes al periodo %s/%s.\n\n" +
-                  "Saludos cordiales,\n" +
-                  "Administración del Consorcio",
-                  recipientName, consortiumName, monthNameSpanish, year);
+            String emailText = consortiumFeePeriod.getNotes();
             
             // Enviar correo con adjuntos
             sendEmailWithAttachments(email, subject, emailText, attachments, consortiumPdfBytes);
@@ -238,9 +243,11 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
       }
    }
    
-   private void sendEmailWithAttachments(String email, String subject, String text, 
-                                        List<byte[]> departmentPdfs,
-                                        byte[] consortiumPdf) throws MessagingException, IOException {
+   private void sendEmailWithAttachments(
+         String email, String subject, String text,
+         List<Pair<String, byte[]>> departmentPdfs,
+         byte[] consortiumPdf
+   ) throws MessagingException, IOException {
       // Convertir la lista de destinatarios a un array
       String[] recipients = new String[] { email };
       
@@ -251,10 +258,8 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
       attachments.put("expensas_consorcio.pdf", new ByteArrayInputStream(consortiumPdf));
       
       // Adjuntar PDFs de departamentos
-      int i = 1;
-      for (byte[] departmentPdf : departmentPdfs) {
-         attachments.put("detalle_expensas_" + i + ".pdf", new ByteArrayInputStream(departmentPdf));
-         i++;
+      for (Pair<String, byte[]> departmentPdf : departmentPdfs) {
+         attachments.put(departmentPdf.getLeft(), new ByteArrayInputStream(departmentPdf.getRight()));
       }
       
       // Enviar correo con adjuntos
@@ -263,7 +268,7 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
 
    private String generateConsortiumPdfPath(ConsortiumFeePeriodEntity period) {
       LocalDate date = period.getPeriodDate();
-      String month = String.valueOf(date.getMonth());
+      String month = paymentService.getMonthName(date);
       String year = String.valueOf(date.getYear());
       String dateForFileName = month + year;
       return String.format("consortium-fees/%d/%d/%d/expensas_%s_%s.pdf",
@@ -278,7 +283,7 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper> {
    private String generateDepartmentPdfPath(DepartmentFeeEntity departmentFee) {
       ConsortiumFeePeriodEntity period = departmentFee.getConsortiumFeePeriod();
       LocalDate date = period.getPeriodDate();
-      String month = String.valueOf(date.getMonth());
+      String month = paymentService.getMonthName(date);
       String year = String.valueOf(date.getYear());
       String dateForFileName = month + year;
       return String.format("consortium-fees/%d/%d/%d/department/%d/detalle_expensas_%s_%s.pdf",

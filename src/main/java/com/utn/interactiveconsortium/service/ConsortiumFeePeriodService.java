@@ -161,8 +161,8 @@ public class ConsortiumFeePeriodService {
       return ConsortiumFeePeriodItemEntity
             .builder()
             .consortiumFeePeriod(consortiumFeePeriod)
-            .name("Uso de Espacio Comunes")
-            .description("Uso de Espacio Comunes")
+            .name("Reservas")
+            .description("Reservas de Espacios Comunes")
             .distributionType(EConsortiumFeeDistributionType.AMENITY_USAGE)
             .conceptType(EConsortiumFeeConceptType.AMENITY_USE)
             .feeType(EConsortiumFeeType.COST)

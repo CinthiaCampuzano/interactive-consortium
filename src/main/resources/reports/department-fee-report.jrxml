@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
-              name="department-fee-report" pageWidth="595" pageHeight="1042" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a1b2c3d4-e5f6-7890-1234-567890abcdef">
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.19.1-867c00bf88cd4d784d404379d6c05e1b419e8a4c  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="department-fee-report" pageWidth="595" pageHeight="1042" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a1b2c3d4-e5f6-7890-1234-567890abcdef">
     <style name="ColumnHeader" fontSize="12" isBold="true"/>
     <parameter name="consortiumName" class="java.lang.String"/>
     <parameter name="departmentCode" class="java.lang.String"/>
@@ -15,12 +13,10 @@
     <parameter name="extraordinaryAmount" class="java.math.BigDecimal"/>
     <parameter name="amenityAmount" class="java.math.BigDecimal"/>
     <parameter name="adjustmentAmount" class="java.math.BigDecimal"/>
-    
     <field name="name" class="java.lang.String"/>
     <field name="description" class="java.lang.String"/>
     <field name="amount" class="java.math.BigDecimal"/>
-    <field name="conceptType" class="com.utn.interactiveconsortium.enums.EConsortiumFeeConceptType"/>
-    
+    <field name="conceptType" class="java.lang.String"/>
     <title>
         <band height="50" splitType="Stretch">
             <textField>
@@ -101,24 +97,19 @@
     <detail>
         <band height="20">
             <textField>
-                <reportElement x="0" y="0" width="150" height="20" uuid="4c7e943a-8db1-4428-be94-3a8db14428d0"/>
+                <reportElement x="110" y="0" width="280" height="20" uuid="4c7e943a-8db1-4428-be94-3a8db14428d0"/>
                 <textElement verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
             </textField>
-            <textField isStretchWithOverflow="true">
-                <reportElement x="150" y="0" width="250" height="20" uuid="7650c546-ef38-4be9-90c5-46ef387be9a5"/>
-                <textElement verticalAlignment="Middle"/>
-                <textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
-            </textField>
             <textField pattern="#,##0.00">
-                <reportElement x="400" y="0" width="100" height="20" uuid="f3e17dd7-1b80-4545-a17d-d71b80b545d0"/>
+                <reportElement x="390" y="0" width="90" height="20" uuid="f3e17dd7-1b80-4545-a17d-d71b80b545d0"/>
                 <textElement textAlignment="Right" verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[$F{amount}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="500" y="0" width="55" height="20" uuid="febfc102-748d-45ba-bfc1-02748de5ba1d"/>
-                <textElement textAlignment="Right" verticalAlignment="Middle"/>
-                <textFieldExpression><![CDATA[$F{conceptType}.toString()]]></textFieldExpression>
+                <reportElement x="0" y="0" width="110" height="20" uuid="2d3fa890-9832-407a-93db-c03e9a25ff30"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{conceptType}]]></textFieldExpression>
             </textField>
         </band>
     </detail>
@@ -163,7 +154,7 @@
                 <textElement>
                     <font isBold="true"/>
                 </textElement>
-                <text><![CDATA[AMENITY:]]></text>
+                <text><![CDATA[RESERVAS:]]></text>
             </staticText>
             <textField pattern="#,##0.00">
                 <reportElement x="170" y="85" width="100" height="20" uuid="a03dd5e5-f306-464e-bdd5-e5f306a64e59"/>

@@ -41,32 +41,44 @@
         <band height="20">
             <staticText>
                 <reportElement x="0" y="0" width="80" height="20" uuid="656952a7-ce7d-4e1e-a3d0-541c51416de9"/>
-                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <textElement verticalAlignment="Middle">
+                    <font size="8" isBold="true"/>
+                </textElement>
                 <text><![CDATA[DEPARTAMENTO]]></text>
             </staticText>
             <staticText>
                 <reportElement x="80" y="0" width="90" height="20" uuid="9ba9119c-0ef2-4ced-878f-353d905d3c97"/>
-                <textElement textAlignment="Right" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font size="8" isBold="true"/>
+                </textElement>
                 <text><![CDATA[ORDINARIAS]]></text>
             </staticText>
             <staticText>
                 <reportElement x="170" y="0" width="90" height="20" uuid="b73e0ec9-7396-4311-a7c0-d0ef0387b0a1"/>
-                <textElement textAlignment="Right" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font size="8" isBold="true"/>
+                </textElement>
                 <text><![CDATA[EXTRAORDINARIAS]]></text>
             </staticText>
             <staticText>
                 <reportElement x="260" y="0" width="90" height="20" uuid="c84f1ec9-8396-5311-b7c0-e0ef0387b0a2"/>
-                <textElement textAlignment="Right" verticalAlignment="Middle"><font isBold="true"/></textElement>
-                <text><![CDATA[AMENITY]]></text>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font size="8" isBold="true"/>
+                </textElement>
+                <text><![CDATA[RESERVAS]]></text>
             </staticText>
             <staticText>
                 <reportElement x="350" y="0" width="90" height="20" uuid="d95f2ec9-9396-6311-c7c0-f0ef0387b0a3"/>
-                <textElement textAlignment="Right" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font size="8" isBold="true"/>
+                </textElement>
                 <text><![CDATA[AJUSTES]]></text>
             </staticText>
             <staticText>
                 <reportElement x="440" y="0" width="90" height="20" uuid="e06f3ec9-0396-7311-d7c0-aebd2ba3b984"/>
-                <textElement textAlignment="Right" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font size="8" isBold="true"/>
+                </textElement>
                 <text><![CDATA[TOTAL]]></text>
             </staticText>
         </band>
