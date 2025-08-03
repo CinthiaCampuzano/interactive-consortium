@@ -358,4 +358,13 @@ public class BookingService {
         }
         return totalAmount;
     }
+
+    public List<BookingEntity> getDepartmentBookingsForPeriod(DepartmentEntity department, LocalDate period) {
+        return bookingRepository.findAllBy(
+              department.getConsortium().getConsortiumId(),
+              department.getDepartmentId(),
+              EBookingStatus.DONE,
+              period
+        );
+    }
 }

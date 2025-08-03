@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,5 +42,8 @@ public class DepartmentFeeItemEntity {
    private BigDecimal proportional;
 
    private BigDecimal amount;
+
+   @Size(max = 100)
+   private String description;
 
 }

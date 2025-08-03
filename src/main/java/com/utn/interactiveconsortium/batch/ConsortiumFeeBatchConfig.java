@@ -51,7 +51,7 @@ public class ConsortiumFeeBatchConfig {
       Map<String, Object> parameterValues = new HashMap<>();
       parameterValues.put("consortiumId", consortiumId);
       parameterValues.put("generationDate", todayDate);
-      parameterValues.put("period", period);
+//      parameterValues.put("period", period);
 
       return new JpaPagingItemReaderBuilder<ConsortiumFeePeriodEntity>()
             .name("consortiumFeeReader")
@@ -61,7 +61,6 @@ public class ConsortiumFeeBatchConfig {
                   FROM ConsortiumEntity c
                   INNER JOIN ConsortiumFeePeriodEntity cp ON cp.consortium.consortiumId = c.consortiumId
                   WHERE c.consortiumId = :consortiumId
-                     AND cp.periodDate = :period
                      AND cp.generationDate = :generationDate
                      AND cp.feePeriodStatus = com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus.PENDING_GENERATION
                      AND EXISTS (

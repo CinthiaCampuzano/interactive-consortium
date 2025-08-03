@@ -158,7 +158,7 @@ public class PdfGenerationService {
                Map<String, Object> itemMap = new HashMap<>();
                ConsortiumFeePeriodItemEntity periodItem = item.getConsortiumFeePeriodItem();
 
-               itemMap.put("name", periodItem.getName());
+               itemMap.put("name", item.getDescription());
                itemMap.put("description", periodItem.getDescription());
                itemMap.put("amount", item.getAmount());
                itemMap.put("conceptType", periodItem.getConceptType().singularTranslateToSpanish());

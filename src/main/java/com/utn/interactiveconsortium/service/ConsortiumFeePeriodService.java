@@ -1,5 +1,6 @@
 package com.utn.interactiveconsortium.service;
 
+import static com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus.ERROR;
 import static com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus.PENDING;
 import static com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus.PENDING_GENERATION;
 
@@ -11,12 +12,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import jakarta.validation.ValidationException;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.utn.interactiveconsortium.config.MinioConfig;
@@ -43,9 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ConsortiumFeePeriodService {
 
-   private final List<EConsortiumFeePeriodStatus> PENDING_STATUS = List.of(PENDING, PENDING_GENERATION);
-
-   private final int DAY_OF_MONTH_TO_CREATE_NEW_PERIOD = 17;
+   private final List<EConsortiumFeePeriodStatus> PENDING_STATUS = List.of(PENDING, PENDING_GENERATION, ERROR);
 
    private final ConsortiumFeePeriodRepository consortiumFeePeriodRepository;
 
@@ -58,6 +60,9 @@ public class ConsortiumFeePeriodService {
    private final ConsortiumRepository consortiumRepository;
 
    private final BookingService bookingService;
+
+   @Value("${spring.batch.period-generation.day-to-generate:28}")
+   private int dayOfMonthToCreateNewPeriod = 28;
 
    public Page<ConsortiumFeePeriodDto> query(
          Long consortiumId,
@@ -102,10 +107,9 @@ public class ConsortiumFeePeriodService {
       return consortiumFeePeriodDto.getGenerationDate().isBefore(today) || consortiumFeePeriodDto.getDueDate().isBefore(consortiumFeePeriodDto.getGenerationDate()) ;
    }
 
-   @Scheduled(cron = "0 0 3 * * ?")
-//   @Scheduled(cron = "*/30 * * * * ?")
+   @Scheduled(cron = "${spring.batch.period-generation.cron:0 0 3 * * ?}")
    public void automaticGenerationConsortiumFeePeriod() {
-      if (LocalDate.now().getDayOfMonth() != DAY_OF_MONTH_TO_CREATE_NEW_PERIOD) {
+      if (LocalDate.now().getDayOfMonth() != dayOfMonthToCreateNewPeriod) {
          return;
       }
       LocalDate periodToGenerate = LocalDate.now().withDayOfMonth(1).plusMonths(1L);
@@ -168,5 +172,27 @@ public class ConsortiumFeePeriodService {
             .feeType(EConsortiumFeeType.COST)
             .amount(bookingAmount)
             .build();
+   }
+
+   @Async
+   @Transactional(value = Transactional.TxType.REQUIRES_NEW, rollbackOn = Exception.class)
+   public void updateConsortiumFeePeriodStatus(Long consortiumFeePeriodId, EConsortiumFeePeriodStatus status) {
+      ConsortiumFeePeriodEntity consortiumFeePeriod = consortiumFeePeriodRepository.findById(consortiumFeePeriodId)
+                                                                                   .orElseThrow();
+      consortiumFeePeriod.setFeePeriodStatus(status);
+      consortiumFeePeriodRepository.save(consortiumFeePeriod);
+   }
+
+
+   @Async
+   @Transactional(value = Transactional.TxType.REQUIRES_NEW, rollbackOn = Exception.class)
+   public void updateConsortiumFeePeriodStatusByIds(List<Long> consortiumFeePeriodIds, EConsortiumFeePeriodStatus status) {
+      if (consortiumFeePeriodIds == null || consortiumFeePeriodIds.isEmpty()) {
+         return;
+      }
+      List<ConsortiumFeePeriodEntity> periodsToUpdate = consortiumFeePeriodRepository.findAllById(consortiumFeePeriodIds);
+      periodsToUpdate.forEach(period -> period.setFeePeriodStatus(status));
+      consortiumFeePeriodRepository.saveAll(periodsToUpdate);
+      log.info("Updated status to {} for {} periods.", status, periodsToUpdate.size());
    }
 }
