@@ -38,24 +38,24 @@ public class AdjustmentServiceImpl implements AdjustmentService {
         // Validate consortium fee period exists and is in PENDING status
         ConsortiumFeePeriodEntity consortiumFeePeriod = consortiumFeePeriodRepository
                 .findById(adjustmentDTO.getConsortiumFeePeriodId())
-                .orElseThrow(() -> new ResourceNotFoundException("Consortium fee period not found"));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("Expensa no encontrada"));
+
         validateConsortiumFeePeriodStatus(consortiumFeePeriod);
-        
+
         // Validate department exists
         DepartmentEntity department = departmentRepository
                 .findById(adjustmentDTO.getDepartmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("Departamento no encontrado"));
+
         // Validate amount is positive
         if (adjustmentDTO.getAmount() == null || adjustmentDTO.getAmount().signum() <= 0) {
-            throw new ValidationException("Amount must be positive");
+            throw new ValidationException("El monto del ajuste debe ser positivo");
         }
-        
+
         // Create and save the adjustment
         AdjustmentEntity adjustment = adjustmentMapper.toEntity(adjustmentDTO, consortiumFeePeriod, department);
         AdjustmentEntity savedAdjustment = adjustmentRepository.save(adjustment);
-        
+
         return adjustmentMapper.toDto(savedAdjustment);
     }
 
@@ -64,9 +64,9 @@ public class AdjustmentServiceImpl implements AdjustmentService {
     public List<AdjustmentDTO> getAdjustmentsByConsortiumFeePeriodId(Long consortiumFeePeriodId) {
         ConsortiumFeePeriodEntity consortiumFeePeriod = consortiumFeePeriodRepository
                 .findById(consortiumFeePeriodId)
-                .orElseThrow(() -> new ResourceNotFoundException("Consortium fee period not found"));
-        
-        return adjustmentRepository.findByConsortiumFeePeriod(consortiumFeePeriod)
+                .orElseThrow(() -> new ResourceNotFoundException("Expensa no encontrada"));
+
+        return adjustmentRepository.findByConsortiumFeePeriodAndDepartment_ActiveIsTrue(consortiumFeePeriod)
                 .stream()
                 .map(adjustmentMapper::toDto)
                 .collect(Collectors.toList());
@@ -78,12 +78,12 @@ public class AdjustmentServiceImpl implements AdjustmentService {
             Long consortiumFeePeriodId, Long departmentId) {
         ConsortiumFeePeriodEntity consortiumFeePeriod = consortiumFeePeriodRepository
                 .findById(consortiumFeePeriodId)
-                .orElseThrow(() -> new ResourceNotFoundException("Consortium fee period not found"));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("Expensa no encontrada"));
+
         DepartmentEntity department = departmentRepository
                 .findById(departmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("Departamento no encontrado"));
+
         return adjustmentRepository.findByConsortiumFeePeriodAndDepartment(consortiumFeePeriod, department)
                 .stream()
                 .map(adjustmentMapper::toDto)
@@ -95,8 +95,8 @@ public class AdjustmentServiceImpl implements AdjustmentService {
     public AdjustmentDTO getAdjustmentById(Long id) {
         AdjustmentEntity adjustment = adjustmentRepository
                 .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Adjustment not found"));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("Ajuste no encontrado"));
+
         return adjustmentMapper.toDto(adjustment);
     }
 
@@ -105,20 +105,20 @@ public class AdjustmentServiceImpl implements AdjustmentService {
     public AdjustmentDTO updateAdjustment(Long id, AdjustmentDTO adjustmentDTO) {
         AdjustmentEntity adjustment = adjustmentRepository
                 .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Adjustment not found"));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("Ajuste no encontrado"));
+
         // Validate consortium fee period status
         validateConsortiumFeePeriodStatus(adjustment.getConsortiumFeePeriod());
-        
+
         // Validate amount is positive
         if (adjustmentDTO.getAmount() == null || adjustmentDTO.getAmount().signum() <= 0) {
-            throw new ValidationException("Amount must be positive");
+            throw new ValidationException("El monto del ajuste debe ser positivo");
         }
-        
+
         // Update the adjustment
         adjustment = adjustmentMapper.updateEntityFromDto(adjustmentDTO, adjustment);
         AdjustmentEntity updatedAdjustment = adjustmentRepository.save(adjustment);
-        
+
         return adjustmentMapper.toDto(updatedAdjustment);
     }
 
@@ -127,11 +127,11 @@ public class AdjustmentServiceImpl implements AdjustmentService {
     public void deleteAdjustment(Long id) {
         AdjustmentEntity adjustment = adjustmentRepository
                 .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Adjustment not found"));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("Ajuste No Encontrado"));
+
         // Validate consortium fee period status
         validateConsortiumFeePeriodStatus(adjustment.getConsortiumFeePeriod());
-        
+
         adjustmentRepository.delete(adjustment);
     }
 
@@ -140,17 +140,17 @@ public class AdjustmentServiceImpl implements AdjustmentService {
     public void deleteAdjustmentsByConsortiumFeePeriodId(Long consortiumFeePeriodId) {
         ConsortiumFeePeriodEntity consortiumFeePeriod = consortiumFeePeriodRepository
                 .findById(consortiumFeePeriodId)
-                .orElseThrow(() -> new ResourceNotFoundException("Consortium fee period not found"));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("Expensa no encontrada"));
+
         // Validate consortium fee period status
         validateConsortiumFeePeriodStatus(consortiumFeePeriod);
-        
+
         adjustmentRepository.deleteByConsortiumFeePeriod(consortiumFeePeriod);
     }
-    
+
     private void validateConsortiumFeePeriodStatus(ConsortiumFeePeriodEntity consortiumFeePeriod) {
-        if (consortiumFeePeriod.getFeePeriodStatus() != EConsortiumFeePeriodStatus.PENDING) {
-            throw new ValidationException("Adjustments can only be made to consortium fee periods in PENDING status");
+        if (consortiumFeePeriod.getFeePeriodStatus() != EConsortiumFeePeriodStatus.PENDING && consortiumFeePeriod.getFeePeriodStatus() != EConsortiumFeePeriodStatus.PENDING_GENERATION) {
+            throw new ValidationException("Los ajustes solo se pueden realizar en períodos de expensas en estado PENDIENTE o PENDIENTE DE GENERACIÓN");
         }
     }
 

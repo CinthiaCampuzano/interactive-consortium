@@ -3,6 +3,8 @@ package com.utn.interactiveconsortium.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.transaction.Transactional;
+
 import com.utn.interactiveconsortium.dto.DepartmentDto;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.DepartmentEntity;
@@ -13,6 +15,8 @@ import com.utn.interactiveconsortium.exception.CustomIllegalArgumentException;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.DepartmentMapper;
+import com.utn.interactiveconsortium.repository.AdjustmentRepository;
+import com.utn.interactiveconsortium.repository.BookingRepository;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.repository.DepartmentRepository;
 import com.utn.interactiveconsortium.repository.PersonRepository;
@@ -29,8 +33,12 @@ public class DepartmentService {
     private final PersonRepository personRepository;
     private final DepartmentMapper departmentMapper;
 
+    private final AdjustmentRepository adjustmentRepository;
+
+    private final BookingRepository bookingRepository;
+
     public Page<DepartmentDto> getDepartmentsByConsortium(Long consortiumId, Pageable pageable) {
-        Page<DepartmentEntity> departmentEntities = departmentRepository.findByConsortium_ConsortiumId(consortiumId, pageable);
+        Page<DepartmentEntity> departmentEntities = departmentRepository.findByConsortium_ConsortiumIdOrderByCode(consortiumId, pageable);
         return departmentMapper.toPage(departmentEntities);
     }
 
@@ -104,6 +112,7 @@ public class DepartmentService {
          return String.valueOf((char) (number + 64));
       }
 
+    @Transactional(rollbackOn = Exception.class)
     public void updateDepartment(DepartmentDto departmentToUpdate)
           throws EntityNotFoundException, EntityAlreadyExistsException, CustomGenericException {
         boolean departmentExists = departmentRepository.existsById(departmentToUpdate.getDepartmentId());
@@ -148,6 +157,11 @@ public class DepartmentService {
         departmentToUpdateEntity.setResident(resident);
         departmentToUpdateEntity.setActive(departmentToUpdate.getActive());
 
+        if (!departmentToUpdate.getActive()) {
+            bookingRepository.deleteAllByDepartment_DepartmentId(departmentToUpdate.getDepartmentId());
+            adjustmentRepository.deleteAllByDepartment_DepartmentId(departmentToUpdate.getDepartmentId());
+        }
+
         departmentRepository.save(departmentToUpdateEntity);
     }
 
@@ -156,7 +170,12 @@ public class DepartmentService {
               .findById(idDepartment)
               .orElseThrow(() -> new EntityNotFoundException("No existe ese departamento"));
 
+        bookingRepository.deleteAllByDepartment_DepartmentId(department.getDepartmentId());
+        adjustmentRepository.deleteAllByDepartment_DepartmentId(department.getDepartmentId());
         departmentRepository.delete(department);
     }
 
+    public List<DepartmentDto> getDepartmentsListByConsortiumId(Long consortiumId) {
+        return departmentMapper.toDtoList(departmentRepository.findByConsortiumConsortiumId(consortiumId));
+    }
 }

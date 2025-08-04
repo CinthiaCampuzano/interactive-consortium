@@ -124,7 +124,6 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper>, It
             BigDecimal departmentAmount = BigDecimal.ZERO;
             boolean adjustmentsCalculated = false;
             for (ConsortiumFeePeriodItemEntity item : consortiumFeePeriod.getFeePeriodItems()) {
-               //TODO Agregar logica para agregar items de reservas y ajustes
                if (item.getConceptType() == EConsortiumFeeConceptType.ADJUSTMENT && adjustmentsCalculated) {
                   continue;
                }
@@ -148,6 +147,7 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper>, It
 
             departmentFee.setDepartmentFeeItems(departmentFeeItems);
             departmentFee.setTotalAmount(departmentAmount);
+            departmentFee.setDueAmount(departmentAmount);
             departmentFeeOfPeriod.add(departmentFee);
          }
 

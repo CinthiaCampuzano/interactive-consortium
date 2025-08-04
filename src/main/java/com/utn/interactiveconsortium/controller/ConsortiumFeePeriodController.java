@@ -50,7 +50,7 @@ public class ConsortiumFeePeriodController {
    @PutMapping("/{feePeriodId}")
    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
    public ConsortiumFeePeriodDto updateConsortiumFeePeriod(@PathVariable Long feePeriodId, @RequestBody ConsortiumFeePeriodDto dto)
-         throws EntityNotFoundException {
+         throws EntityNotFoundException, CustomGenericException {
       return consortiumFeePeriodService.updateConsortiumFeePeriod(feePeriodId, dto);
    }
 

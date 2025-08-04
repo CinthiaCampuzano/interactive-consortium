@@ -71,13 +71,13 @@ public class PaymentService {
          throws EntityNotFoundException, MessagingException, IOException, CustomGenericException {
 
       List<Long> associatedConsortiumIds = loggedUserService.getAssociatedConsortiumIds();
-      if (!associatedConsortiumIds.contains(paymentDto.getDepartmentFee().getConsortiumFeePeriod().getConsortium().getConsortiumId())) {
-         throw new EntityNotFoundException("No se encontro el consorcio");
-      }
-
       DepartmentFeeEntity departmentFee = departmentFeeRepository
             .findById(paymentDto.getDepartmentFee().getDepartmentFeeId())
             .orElseThrow(() -> new EntityNotFoundException("No se encontro la deuda del departamento para el periodo"));
+
+      if (!associatedConsortiumIds.contains(departmentFee.getConsortiumFeePeriod().getConsortium().getConsortiumId())) {
+         throw new EntityNotFoundException("No se encontro el consorcio");
+      }
 
       ConsortiumFeePeriodEntity consortiumFeePeriod = departmentFee.getConsortiumFeePeriod();
       if (!CONSORTIUM_FEE_PERIOD_STATUSES_ALLOWED_TO_BE_PAID.contains(consortiumFeePeriod.getFeePeriodStatus())) {
@@ -86,15 +86,19 @@ public class PaymentService {
 
       BigDecimal pendingAmount = departmentFee.getTotalAmount().subtract(departmentFee.getPaidAmount());
       BigDecimal newAmountPaid = paymentDto.getAmount();
-      boolean isPaidCompletely = pendingAmount.subtract(newAmountPaid).compareTo(BigDecimal.ZERO) > 0;
+      boolean isPaidCompletely = pendingAmount.subtract(newAmountPaid).compareTo(BigDecimal.ZERO) <= 0;
 
       departmentFee.setPaymentStatus(isPaidCompletely ? EPaymentStatus.PAID : EPaymentStatus.PARTIALLY_PAID);
       departmentFee.setPaidAmount(departmentFee.getPaidAmount().add(newAmountPaid));
+      BigDecimal newDueAmount = departmentFee.getDueAmount().subtract(departmentFee.getPaidAmount());
+      departmentFee.setDueAmount(newDueAmount.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : newDueAmount);
+      LocalDate now = LocalDate.now();
+      departmentFee.setLastPaidDate(now);
 
       PaymentEntity payment = PaymentEntity
             .builder()
             .paymentMethod(EPaymentMethod.CASH)
-            .paymentDate(LocalDate.now())
+            .paymentDate(now)
             .departmentFee(departmentFee)
             .amount(newAmountPaid)
             .build();

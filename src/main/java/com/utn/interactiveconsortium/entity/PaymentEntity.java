@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -40,6 +42,7 @@ public class PaymentEntity {
 
    private BigDecimal amount;
 
+   @Enumerated(EnumType.STRING)
    private EPaymentMethod paymentMethod;
 
    //Numero de referencia de la transferencia

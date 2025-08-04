@@ -42,7 +42,7 @@ public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumFeePeriod
 
    @Override
    public ConsortiumFeeWrapper process(ConsortiumFeePeriodEntity consortiumFeePeriod) throws Exception {
-      Thread.sleep(10000L);
+      Thread.sleep(20000L);
       ConsortiumEntity consortium = consortiumFeePeriod.getConsortium();
       Long consortiumId = consortium.getConsortiumId();
       LocalDate todayDate = LocalDate.now();
@@ -105,7 +105,7 @@ public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumFeePeriod
    }
 
    private List<ConsortiumFeePeriodItemEntity> processAdjustmentsForConsortiumFeePeriod(ConsortiumFeePeriodEntity consortiumFeePeriod) {
-      List<AdjustmentEntity> adjustments = adjustmentRepository.findByConsortiumFeePeriod(consortiumFeePeriod);
+      List<AdjustmentEntity> adjustments = adjustmentRepository.findByConsortiumFeePeriodAndDepartment_ActiveIsTrue(consortiumFeePeriod);
       return adjustments.stream()
             .collect(Collectors.groupingBy(AdjustmentEntity::getAdjustmentType))
             .entrySet().stream()

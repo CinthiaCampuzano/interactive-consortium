@@ -105,4 +105,6 @@ public interface BookingRepository extends JpaRepository<BookingEntity, Long> {
           EBookingStatus status,
           LocalDate period
     );
+
+    void deleteAllByDepartment_DepartmentId(Long departmentDepartmentId);
 }

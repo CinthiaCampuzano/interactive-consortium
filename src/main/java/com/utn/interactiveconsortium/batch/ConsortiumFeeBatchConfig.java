@@ -51,23 +51,28 @@ public class ConsortiumFeeBatchConfig {
       Map<String, Object> parameterValues = new HashMap<>();
       parameterValues.put("consortiumId", consortiumId);
       parameterValues.put("generationDate", todayDate);
-//      parameterValues.put("period", period);
 
       return new JpaPagingItemReaderBuilder<ConsortiumFeePeriodEntity>()
             .name("consortiumFeeReader")
             .entityManagerFactory(entityManagerFactory)
             .queryString("""
                   SELECT cp
-                  FROM ConsortiumEntity c
-                  INNER JOIN ConsortiumFeePeriodEntity cp ON cp.consortium.consortiumId = c.consortiumId
-                  WHERE c.consortiumId = :consortiumId
+                  FROM ConsortiumFeePeriodEntity cp
+                  WHERE cp.consortium.consortiumId = :consortiumId
                      AND cp.generationDate = :generationDate
                      AND cp.feePeriodStatus = com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus.PENDING_GENERATION
+                     AND cp.periodDate = (
+                         SELECT MIN(cp2.periodDate)
+                         FROM ConsortiumFeePeriodEntity cp2
+                         WHERE cp2.consortium.consortiumId = cp.consortium.consortiumId
+                         AND cp2.generationDate = :generationDate
+                         AND cp2.feePeriodStatus = com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus.PENDING_GENERATION
+                     )
                      AND EXISTS (
                          SELECT 1
                          FROM ConsortiumFeeConceptEntity cc
                          WHERE cc.active = true
-                         AND cc.consortium.consortiumId = c.consortiumId
+                         AND cc.consortium.consortiumId = cp.consortium.consortiumId
                      )
                   """)
             .parameterValues(parameterValues)

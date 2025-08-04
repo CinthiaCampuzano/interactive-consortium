@@ -13,8 +13,13 @@ import com.utn.interactiveconsortium.entity.DepartmentEntity;
 
 @Repository
 public interface AdjustmentRepository extends JpaRepository<AdjustmentEntity, Long> {
-    
-    List<AdjustmentEntity> findByConsortiumFeePeriod(ConsortiumFeePeriodEntity consortiumFeePeriod);
+
+   @Query("""
+        SELECT a FROM AdjustmentEntity a WHERE a.consortiumFeePeriod = :consortiumFeePeriod AND a.department.active = true
+    """)
+    List<AdjustmentEntity> findByConsortiumFeePeriodAndDepartment_ActiveIsTrue(
+          ConsortiumFeePeriodEntity consortiumFeePeriod
+   );
     
     List<AdjustmentEntity> findByConsortiumFeePeriodAndDepartment(
             ConsortiumFeePeriodEntity consortiumFeePeriod, 
@@ -33,4 +38,6 @@ public interface AdjustmentRepository extends JpaRepository<AdjustmentEntity, Lo
          @Param("consortiumFeePeriod") ConsortiumFeePeriodEntity consortiumFeePeriod,
          @Param("department") DepartmentEntity department
    );
+
+   void deleteAllByDepartment_DepartmentId(Long departmentDepartmentId);
 }

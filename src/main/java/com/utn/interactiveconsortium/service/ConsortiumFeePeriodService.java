@@ -13,14 +13,13 @@ import java.util.List;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ValidationException;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.utn.interactiveconsortium.config.MinioConfig;
@@ -37,6 +36,7 @@ import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.ConsortiumFeePeriodMapper;
 import com.utn.interactiveconsortium.repository.ConsortiumFeePeriodRepository;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
+import com.utn.interactiveconsortium.repository.PaymentRepository;
 import com.utn.interactiveconsortium.util.MinioUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -61,6 +61,8 @@ public class ConsortiumFeePeriodService {
 
    private final BookingService bookingService;
 
+   private final PaymentRepository paymentRepository;
+
    @Value("${spring.batch.period-generation.day-to-generate:28}")
    private int dayOfMonthToCreateNewPeriod = 28;
 
@@ -82,14 +84,15 @@ public class ConsortiumFeePeriodService {
       IOUtils.copy(fileInputStream, response.getOutputStream());
    }
 
-   public ConsortiumFeePeriodDto updateConsortiumFeePeriod(Long feePeriodId, ConsortiumFeePeriodDto consortiumFeePeriodDto) throws EntityNotFoundException {
+   public ConsortiumFeePeriodDto updateConsortiumFeePeriod(Long feePeriodId, ConsortiumFeePeriodDto consortiumFeePeriodDto)
+         throws EntityNotFoundException, CustomGenericException {
       ConsortiumFeePeriodEntity consortiumFeePeriod = consortiumFeePeriodRepository.findById(feePeriodId)
                                                                                    .orElseThrow(() -> new EntityNotFoundException("Consortium Fee Period not found"));
       if (!PENDING_STATUS.contains(consortiumFeePeriod.getFeePeriodStatus())) {
-         throw new ValidationException("No se puede modificar una expensa generada");
+         throw new CustomGenericException("No se puede modificar una expensa generada");
       }
-      if (isInvalidateDates(consortiumFeePeriodDto)) {
-         throw new ValidationException("Fecha de generacion o vencimiento incorrectas");
+      if (isInvalidateDates(consortiumFeePeriodDto, consortiumFeePeriod)) {
+         throw new CustomGenericException("Fecha de generacion o vencimiento incorrectas");
       }
 
       consortiumFeePeriod.setGenerationDate(consortiumFeePeriodDto.getGenerationDate());
@@ -102,12 +105,60 @@ public class ConsortiumFeePeriodService {
       return  consortiumFeePeriodMapper.convertEntityToDto(consortiumFeePeriodRepository.save(consortiumFeePeriod));
    }
 
-   private boolean isInvalidateDates(ConsortiumFeePeriodDto consortiumFeePeriodDto) {
+   private boolean isInvalidateDates(ConsortiumFeePeriodDto consortiumFeePeriodDto, ConsortiumFeePeriodEntity consortiumFeePeriod) {
       LocalDate today = LocalDate.now();
+      if (consortiumFeePeriodDto.getGenerationDate() == null || consortiumFeePeriodDto.getDueDate() == null) {
+         return true;
+      }
+      boolean invalidGenerationDate = consortiumFeePeriodRepository.existsAnyWithGenerationsDates(consortiumFeePeriod.getConsortium().getConsortiumId(),
+            consortiumFeePeriod.getConsortiumFeePeriodId(), consortiumFeePeriod.getPeriodDate(), consortiumFeePeriodDto.getGenerationDate());
+      if (invalidGenerationDate) {
+         return true;
+      }
+      if (consortiumFeePeriodDto.getGenerationDate().isBefore(consortiumFeePeriod.getPeriodDate())) {
+         return true;
+      }
       return consortiumFeePeriodDto.getGenerationDate().isBefore(today) || consortiumFeePeriodDto.getDueDate().isBefore(consortiumFeePeriodDto.getGenerationDate()) ;
    }
 
-   @Scheduled(cron = "${spring.batch.period-generation.cron:0 0 3 * * ?}")
+
+   @Scheduled(cron = "0 */1 * * * ?")
+   public void consortiumFeePeriodProcess() {
+      log.info("PROCESO AUTOMATICO DE GENERACION PERIODOS INICIADO");
+      List<ConsortiumEntity> allConsortiums = consortiumRepository.findAll();
+      LocalDate nowPeriod = LocalDate.now().withDayOfMonth(1);
+
+      //Create periods for consortium
+      List<LocalDate> periods = List.of(nowPeriod.minusMonths(1L), nowPeriod, nowPeriod.plusMonths(1L));
+      List<ConsortiumFeePeriodEntity> consortiumFeePeriodToCreate = new ArrayList<>();
+      for (ConsortiumEntity consortium : allConsortiums) {
+         List<ConsortiumFeePeriodEntity> periodsPresents = consortiumFeePeriodRepository.findByConsortiumIdAndPeriod(consortium.getConsortiumId(), periods);
+         List<LocalDate> periodToCreate = periods.stream()
+                                                 .filter(period -> periodsPresents.stream().noneMatch(periodEntity -> periodEntity.getPeriodDate().equals(period)))
+                                                 .toList();
+         List<ConsortiumFeePeriodEntity> consortiumFeePeriods = generateConsortiumFeePeriod(consortium, periodToCreate);
+         consortiumFeePeriodToCreate.addAll(consortiumFeePeriods);
+      }
+      consortiumFeePeriodRepository.saveAll(consortiumFeePeriodToCreate);
+      log.info("PROCESO AUTOMATICO DE GENERACION PERIODOS FINALIZADO");
+      //Actualizar los estados de los periodos, cerrar los que corresponda
+      consortiumFeePeriodRepository.closePendingPeriodsStatus();
+      log.info("PROCESO AUTOMATICO DE CIERRE DE PERIODO FINALIZADO");
+   }
+
+   private List<ConsortiumFeePeriodEntity> generateConsortiumFeePeriod(ConsortiumEntity consortium, List<LocalDate> periodToCreate) {
+      List<ConsortiumFeePeriodEntity> consortiumFeePeriodToCreate = periodToCreate.stream()
+                                                                                    .map(period -> ConsortiumFeePeriodEntity.builder()
+                                                                                          .consortium(consortium)
+                                                                                          .periodDate(period)
+                                                                                          .feePeriodStatus(PENDING)
+                                                                                          .build()
+                                                                                    )
+                                                                                    .toList();
+      return consortiumFeePeriodToCreate;
+
+   }
+
    public void automaticGenerationConsortiumFeePeriod() {
       if (LocalDate.now().getDayOfMonth() != dayOfMonthToCreateNewPeriod) {
          return;
@@ -133,6 +184,7 @@ public class ConsortiumFeePeriodService {
       return consortiumFeePeriodMapper.toDtoList(periodsSaved);
    }
 
+   @Transactional
    public ConsortiumFeePeriodDto regenerateConsortiumFeePeriod(Long consortiumFeePeriodId) throws EntityNotFoundException, CustomGenericException {
       ConsortiumFeePeriodEntity consortiumFeePeriod = consortiumFeePeriodRepository
             .findById(consortiumFeePeriodId)

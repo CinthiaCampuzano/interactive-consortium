@@ -1,5 +1,7 @@
 package com.utn.interactiveconsortium.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,6 +36,13 @@ public class DepartmentController {
     public Page<DepartmentDto> getDepartmentsByConsortium(@RequestParam Long consortiumId, Pageable page) {
         return departmentService.getDepartmentsByConsortium(consortiumId, page);
     }
+
+    @GetMapping("/consortium/{consortiumId}/list")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
+    public List<DepartmentDto> getDepartmentsListByConsortiumId(@PathVariable Long consortiumId) {
+        return departmentService.getDepartmentsListByConsortiumId(consortiumId);
+    }
+
 
     @GetMapping(value = "filterBy")
     @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")

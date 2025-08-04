@@ -27,7 +27,7 @@ public class PaymentController {
 
    @PostMapping()
    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
-   public PaymentDto createPayment(@RequestPart(value = "maintenanceFeePaymentDto") PaymentDto paymentDto,
+   public PaymentDto createPayment(@RequestPart(value = "paymentDto") PaymentDto paymentDto,
          @RequestPart(value = "file") MultipartFile file) throws EntityNotFoundException, MessagingException, IOException, CustomGenericException {
       return paymentService.createPayment(paymentDto, file);
    }
