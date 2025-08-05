@@ -35,6 +35,16 @@ public class DepartmentFeeController {
       return departmentFeeService.adminQuery(consortiumId, period, page);
    }
 
+   @PreAuthorize("hasAnyAuthority('ROLE_RESIDENT', 'ROLE_PROPIETARY')")
+   @GetMapping("/residents/query")
+   public Page<DepartmentFeeQueryAdminDto> queryForResidents(
+         @RequestParam Long consortiumId,
+         @RequestParam LocalDate period,
+         Pageable page
+   ) {
+      return departmentFeeService.residentQuery(consortiumId, period, page);
+   }
+
    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
    @GetMapping("/resume")
    public RDepartmentFeeResumeDto getDepartmentResume(

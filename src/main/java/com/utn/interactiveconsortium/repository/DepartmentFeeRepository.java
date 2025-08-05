@@ -23,6 +23,20 @@ public interface DepartmentFeeRepository extends JpaRepository<DepartmentFeeEnti
    Page<DepartmentFeeQueryAdminDto> adminQuery(Long consortiumId, LocalDate period, Pageable page);
 
    @Query("""
+         SELECT new com.utn.interactiveconsortium.dto.DepartmentFeeQueryAdminDto(df.departmentFeeId, df.department.code,df.issueDate,df.dueDate, df.lastPaidDate, df.totalAmount,df.dueAmount,df.paidAmount,df.paymentStatus, null)
+             FROM DepartmentFeeEntity  df
+             WHERE df.consortiumFeePeriod.consortium.consortiumId = :consortiumId
+             AND df.consortiumFeePeriod.periodDate = :period
+             AND df.department.departmentId IN :departmentIds
+         ORDER BY df.department.code ASC
+         """)
+   Page<DepartmentFeeQueryAdminDto> residentQuery(
+         Long consortiumId,
+         LocalDate period,
+         List<Long> departmentIds,
+         Pageable page);
+
+   @Query("""
              SELECT df
              FROM DepartmentFeeEntity  df
              WHERE df.consortiumFeePeriod.consortium.consortiumId = :consortiumId

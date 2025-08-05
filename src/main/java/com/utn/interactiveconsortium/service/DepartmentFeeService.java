@@ -2,6 +2,7 @@ package com.utn.interactiveconsortium.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -23,9 +24,20 @@ public class DepartmentFeeService {
 
    private final DepartmentFeeRepository departmentFeeRepository;
 
+   private final LoggedUserService loggedUserService;
 
    public Page<DepartmentFeeQueryAdminDto> adminQuery(Long consortiumId, LocalDate period, Pageable page) {
       Page<DepartmentFeeQueryAdminDto> departmentFeeQueryAdminDtos = departmentFeeRepository.adminQuery(consortiumId, period, page);
+      return departmentFeeQueryAdminDtos;
+   }
+
+   public Page<DepartmentFeeQueryAdminDto> residentQuery(Long consortiumId, LocalDate period, Pageable page) {
+      List<Long> associatedResidentDepartmentIds = loggedUserService.getAssociatedResidentDepartmentIds();
+      List<Long> associatedPropietaryDepartmentIds = loggedUserService.getAssociatedPropietaryDepartmentIds();
+      List<Long> associatedDepartments= new ArrayList<>();
+      associatedDepartments.addAll(associatedResidentDepartmentIds);
+      associatedDepartments.addAll(associatedPropietaryDepartmentIds);
+      Page<DepartmentFeeQueryAdminDto> departmentFeeQueryAdminDtos = departmentFeeRepository.residentQuery(consortiumId, period, associatedDepartments, page);
       return departmentFeeQueryAdminDtos;
    }
 
