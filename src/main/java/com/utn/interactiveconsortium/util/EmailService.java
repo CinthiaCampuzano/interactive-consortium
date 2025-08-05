@@ -35,6 +35,15 @@ public class EmailService {
         emailSender.send(message);
     }
 
+    public void sendSimpleMessage(String[] to, String subject, String text) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("consorcio.interactivo.rca@gmail.com");
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(text);
+        emailSender.send(message);
+    }
+
     public void sendMessageWithAttachment(String[] to, String subject, String text, String fileName, InputStream file) throws MessagingException, IOException {
         MimeMessage message = emailSender.createMimeMessage();
 

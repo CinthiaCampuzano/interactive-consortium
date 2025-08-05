@@ -45,4 +45,6 @@ public class ConsortiumFeeConceptDto {
 
    private boolean active;
 
+   private boolean defaultConcept;
+
 }

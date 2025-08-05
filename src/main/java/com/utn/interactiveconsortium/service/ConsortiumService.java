@@ -54,6 +54,8 @@ public class ConsortiumService {
 
     private final DepartmentService departmentService;
 
+    private final ConsortiumFeeConceptService conceptService;
+
     public Page<ConsortiumDto> getConsortiums(Pageable page){
         return consortiumMapper.toPage(consortiumRepository.findAll(page));
     }
@@ -149,6 +151,8 @@ public class ConsortiumService {
         newConsortiumEntity.setAdministrator(administrator);
 
         ConsortiumEntity savedConsortium = consortiumRepository.save(newConsortiumEntity);
+
+        conceptService.createDefaultConceptsFor(savedConsortium);
 
         if (savedConsortium.getConsortiumType() == EConsortiumType.BUILDING) {
             departmentService.massiveDepartmentCreation(savedConsortium);

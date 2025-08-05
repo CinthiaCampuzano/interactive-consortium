@@ -42,7 +42,6 @@ public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumFeePeriod
 
    @Override
    public ConsortiumFeeWrapper process(ConsortiumFeePeriodEntity consortiumFeePeriod) throws Exception {
-      Thread.sleep(20000L);
       ConsortiumEntity consortium = consortiumFeePeriod.getConsortium();
       Long consortiumId = consortium.getConsortiumId();
       LocalDate todayDate = LocalDate.now();

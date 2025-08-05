@@ -58,4 +58,6 @@ public class ConsortiumFeeConceptEntity {
 
    private boolean active;
 
+   private boolean defaultConcept;
+
 }

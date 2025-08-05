@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.utn.interactiveconsortium.dto.ConsortiumFeeConceptDto;
+import com.utn.interactiveconsortium.exception.CustomGenericException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.service.ConsortiumFeeConceptService;
 
@@ -29,7 +31,7 @@ public class ConsortiumFeeConceptController {
 
    @PostMapping
    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
-   public ConsortiumFeeConceptDto create(@RequestBody @Valid ConsortiumFeeConceptDto consortiumFeeConceptDto) {
+   public ConsortiumFeeConceptDto create(@RequestBody @Valid ConsortiumFeeConceptDto consortiumFeeConceptDto) throws CustomGenericException {
       return consortiumFeeConceptService.create(consortiumFeeConceptDto);
    }
 
@@ -51,5 +53,10 @@ public class ConsortiumFeeConceptController {
       return consortiumFeeConceptService.query(consortiumId, page);
    }
 
+   @DeleteMapping("/{consortiumFeeConceptId}")
+   @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+   public ConsortiumFeeConceptDto delete(@PathVariable Long consortiumFeeConceptId) throws EntityNotFoundException, CustomGenericException {
+      return consortiumFeeConceptService.delete(consortiumFeeConceptId);
+   }
 
 }

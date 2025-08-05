@@ -39,7 +39,7 @@ public class DepartmentFeeService {
       BigDecimal totalAmount = BigDecimal.ZERO;
 
       for (DepartmentFeeEntity departmentFee : departmentFeeResume) {
-         if (departmentFee.getPaidAmount().compareTo(departmentFee.getDueAmount()) < 0) {
+         if (departmentFee.getPaidAmount().compareTo(departmentFee.getTotalAmount()) < 0) {
             pendingQuantity++;
          } else {
             paidQuantity++;
