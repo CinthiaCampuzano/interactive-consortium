@@ -7,6 +7,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 @EnableScheduling
 @Slf4j
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "spring.batch.maintenance-fee.enabled", havingValue = "true", matchIfMissing = true)
 public class ConsortiumFeeScheduler {
 
    private final JobLauncher jobLauncher;
@@ -25,12 +27,10 @@ public class ConsortiumFeeScheduler {
    @Qualifier("consortiumFeeJob")
    private final Job consortiumFeeJob;
 
-//   @Scheduled(cron = "0 */2 * * * ?")
+
+   @Scheduled(cron = "${spring.batch.maintenance-fee.cron:0 */5 * * * ?}")
    public void runConsortiumFeeJob() {
       try {
-         //TODO agregar el periodo
-         //TODO agregar el consortium id para poder ejecutar a demanda
-         //TODO agregar una flag si es ejecucion automatica, manual o reproceso
          log.info("Iniciando ejecución programada del job de generación de expensas...");
          JobParameters jobParameters = new JobParametersBuilder()
                .addDate("timestamp", new Date()) // Añade un parámetro para que cada ejecución sea única

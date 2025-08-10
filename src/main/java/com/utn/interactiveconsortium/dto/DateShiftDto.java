@@ -1,6 +1,6 @@
 package com.utn.interactiveconsortium.dto;
 
-import com.utn.interactiveconsortium.enums.Shift;
+import com.utn.interactiveconsortium.enums.EShift;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,5 +10,5 @@ import java.time.LocalDate;
 
 public class DateShiftDto {
     private LocalDate date;
-    private Shift shift;
+    private EShift shift;
 }

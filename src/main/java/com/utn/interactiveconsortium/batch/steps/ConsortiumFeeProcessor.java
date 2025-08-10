@@ -3,26 +3,42 @@ package com.utn.interactiveconsortium.batch.steps;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.batch.core.ItemProcessListener;
+import org.springframework.batch.core.annotation.AfterRead;
+import org.springframework.batch.core.annotation.BeforeProcess;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 import com.utn.interactiveconsortium.batch.wrapper.ConsortiumFeeWrapper;
+import com.utn.interactiveconsortium.entity.AdjustmentEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumFeeConceptEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodEntity;
 import com.utn.interactiveconsortium.entity.ConsortiumFeePeriodItemEntity;
 import com.utn.interactiveconsortium.entity.DepartmentEntity;
+import com.utn.interactiveconsortium.enums.EAdjustmentType;
+import com.utn.interactiveconsortium.enums.EConsortiumFeeConceptType;
+import com.utn.interactiveconsortium.enums.EConsortiumFeeDistributionType;
 import com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus;
+import com.utn.interactiveconsortium.enums.EOperationType;
+import com.utn.interactiveconsortium.repository.AdjustmentRepository;
+import com.utn.interactiveconsortium.repository.ConsortiumFeePeriodRepository;
 import com.utn.interactiveconsortium.service.ConsortiumFeeConceptService;
+import com.utn.interactiveconsortium.service.ConsortiumFeePeriodService;
 
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumFeePeriodEntity, ConsortiumFeeWrapper> {
+public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumFeePeriodEntity, ConsortiumFeeWrapper>, ItemProcessListener<ConsortiumFeePeriodEntity, ConsortiumFeeWrapper> {
 
    private final ConsortiumFeeConceptService consortiumFeeConceptService;
+
+   private final ConsortiumFeePeriodService consortiumFeePeriodService;
+   
+   private final AdjustmentRepository adjustmentRepository;
 
    @Override
    public ConsortiumFeeWrapper process(ConsortiumFeePeriodEntity consortiumFeePeriod) throws Exception {
@@ -36,10 +52,19 @@ public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumFeePeriod
 
       List<ConsortiumFeePeriodItemEntity> periodItems = generatePeriodConcepts(consortiumFeePeriod, consortiumFeeConcepts);
 
+      //Add bookings concepts
+      ConsortiumFeePeriodItemEntity bookingPeriodItem = consortiumFeePeriodService.createBookingConceptFor(consortiumFeePeriod);
+      periodItems.add(bookingPeriodItem);
+
+      //Add adjustments concepts
+      List<ConsortiumFeePeriodItemEntity> adjustmentItems = processAdjustmentsForConsortiumFeePeriod(consortiumFeePeriod);
+      periodItems.addAll(adjustmentItems);
+
       BigDecimal totalAmount = periodItems.stream()
             .map(periodItem -> getTotalAmountForConsortium(consortium, periodItem))
             .reduce(BigDecimal::add)
             .orElseThrow();
+
       consortiumFeePeriod.setTotalAmount(totalAmount);
 
       return new ConsortiumFeeWrapper(consortiumFeePeriod, periodItems);
@@ -65,7 +90,7 @@ public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumFeePeriod
                            .build();
                   }
             )
-            .toList();
+            .collect(Collectors.toList());
    }
 
    private BigDecimal getTotalAmountForConsortium(ConsortiumEntity consortium, ConsortiumFeePeriodItemEntity periodItem) {
@@ -73,9 +98,46 @@ public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumFeePeriod
       int totalActiveDepartments = consortium.getDepartments().stream().filter(DepartmentEntity::getActive).toList().size();
 
       return switch (periodItem.getDistributionType()) {
-         case EQUAL_SPLIT -> periodItem.getAmount();
          case PER_UNIT_FIXED -> periodItem.getAmount().multiply(BigDecimal.valueOf(totalActiveDepartments));
-         default -> BigDecimal.ZERO;
+         default -> periodItem.getAmount();
       };
+   }
+
+   private List<ConsortiumFeePeriodItemEntity> processAdjustmentsForConsortiumFeePeriod(ConsortiumFeePeriodEntity consortiumFeePeriod) {
+      List<AdjustmentEntity> adjustments = adjustmentRepository.findByConsortiumFeePeriodAndDepartment_ActiveIsTrue(consortiumFeePeriod);
+      return adjustments.stream()
+            .collect(Collectors.groupingBy(AdjustmentEntity::getAdjustmentType))
+            .entrySet().stream()
+            .map(entry -> {
+               EAdjustmentType adjustmentType = entry.getKey();
+               List<AdjustmentEntity> adjustmentGroup = entry.getValue();
+
+               BigDecimal adjustmentTypeTotalAmount =  adjustmentGroup.stream()
+                                                                      .map(adj -> adj.getOperationType() == EOperationType.CREDIT ? adj.getAmount().negate() : adj.getAmount())
+                                                                      .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+               String adjustmentDescription = "Ajustes de tipo " + adjustmentType.singularTranslateToSpanish();
+
+               return ConsortiumFeePeriodItemEntity
+                     .builder()
+                     .consortiumFeePeriod(consortiumFeePeriod)
+                     .name(adjustmentType.singularTranslateToSpanish())
+                     .description(adjustmentDescription)
+                     .amount(adjustmentTypeTotalAmount)
+                     .conceptType(EConsortiumFeeConceptType.ADJUSTMENT)
+                     .distributionType(EConsortiumFeeDistributionType.ADJUSTMENT)
+                     .build();
+            })
+            .collect(Collectors.toList());
+   }
+
+   @Override
+   public void beforeProcess(ConsortiumFeePeriodEntity item) {
+      consortiumFeePeriodService.updateConsortiumFeePeriodStatus(item.getConsortiumFeePeriodId(), EConsortiumFeePeriodStatus.IN_PROCESS);
+   }
+
+   @Override
+   public void onProcessError(ConsortiumFeePeriodEntity item, Exception e) {
+      consortiumFeePeriodService.updateConsortiumFeePeriodStatus(item.getConsortiumFeePeriodId(), EConsortiumFeePeriodStatus.ERROR);
    }
 }

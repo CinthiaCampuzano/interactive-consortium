@@ -5,9 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Table(name = "maintenance_fee_payment")
 @Entity
@@ -22,13 +20,13 @@ public class MaintenanceFeePaymentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long maintenanceFeePaymentId;
 
-    @ManyToOne
-    @JoinColumn(name = "maintenance_fee_id")
-    private MaintenanceFeeEntity maintenanceFee;
+//    @ManyToOne
+//    @JoinColumn(name = "maintenance_fee_id")
+//    private MaintenanceFeeEntity maintenanceFee;
 
-    @ManyToOne
-    @JoinColumn(name = "department_id")
-    private DepartmentEntity department;
+//    @ManyToOne
+//    @JoinColumn(name = "department_id")
+//    private DepartmentEntity department;
 
     @Enumerated(EnumType.STRING)
     private EPaymentStatus status;

@@ -29,6 +29,7 @@ public interface ConsortiumFeeConceptRepository extends JpaRepository<Consortium
     FROM ConsortiumFeeConceptEntity concept
     WHERE concept.consortium.consortiumId = :consortiumId
     AND concept.active = :active
+    ORDER BY concept.conceptType
     """)
    List<ConsortiumFeeConceptEntity> queryAllBy(
          Long consortiumId,

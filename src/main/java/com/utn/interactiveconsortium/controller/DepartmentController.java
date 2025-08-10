@@ -1,5 +1,7 @@
 package com.utn.interactiveconsortium.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.utn.interactiveconsortium.dto.DepartmentDto;
+import com.utn.interactiveconsortium.exception.CustomGenericException;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.service.DepartmentService;
@@ -33,6 +36,13 @@ public class DepartmentController {
     public Page<DepartmentDto> getDepartmentsByConsortium(@RequestParam Long consortiumId, Pageable page) {
         return departmentService.getDepartmentsByConsortium(consortiumId, page);
     }
+
+    @GetMapping("/consortium/{consortiumId}/list")
+    @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
+    public List<DepartmentDto> getDepartmentsListByConsortiumId(@PathVariable Long consortiumId) {
+        return departmentService.getDepartmentsListByConsortiumId(consortiumId);
+    }
+
 
     @GetMapping(value = "filterBy")
     @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
@@ -55,7 +65,8 @@ public class DepartmentController {
 
     @PutMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ROOT', 'ROLE_ADMIN')")
-    public void updateDepartment(@RequestBody @Validated DepartmentDto departmentToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
+    public void updateDepartment(@RequestBody @Validated DepartmentDto departmentToUpdate)
+          throws EntityNotFoundException, EntityAlreadyExistsException, CustomGenericException {
         departmentService.updateDepartment(departmentToUpdate);
     }
 

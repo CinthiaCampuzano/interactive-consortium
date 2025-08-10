@@ -22,42 +22,42 @@ import java.time.LocalDate;
 @RequestMapping(value = "maintenanceFeePayment")
 public class MaintenanceFeePaymentController {
 
-    private final MaintenanceFeePaymentService maintenanceFeePaymentService;
-
-    @GetMapping("/consortium/{consortiumId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
-    public Page<MaintenanceFeePaymentDto> getMaintenanceFeePayments(
-            @PathVariable Long consortiumId,
-            @RequestParam(required = false) @CustomDateFormat LocalDate period,
-            @RequestParam(required = false) EPaymentStatus status,
-            Pageable page
-    ) {
-        return maintenanceFeePaymentService.getMaintenanceFeePayments(consortiumId, period, status, page);
-    }
-
-    @GetMapping("/{maintenanceFeePaymentId}/download")
-    @PreAuthorize("hasAnyAuthority('ROLE_PROPIETARY', 'ROLE_RESIDENT', 'ROLE_ADMIN')")
-    public void downloadMaintenanceFeePayment(@PathVariable Long maintenanceFeePaymentId, HttpServletResponse response) throws EntityNotFoundException, IOException {
-        maintenanceFeePaymentService.downloadMaintenanceFeePayment(maintenanceFeePaymentId, response);
-    }
-
-    @GetMapping("/{consortiumId}/person")
-    @PreAuthorize("hasAnyAuthority('ROLE_PROPIETARY', 'ROLE_RESIDENT')")
-    public Page<MaintenanceFeePaymentDto> getMaintenanceFeePaymentsForPerson(
-            @PathVariable Long consortiumId,
-            @RequestParam (required = false) @CustomDateFormat LocalDate period,
-            @RequestParam (required = false) EPaymentStatus status,
-            Pageable page
-    ) {
-        return maintenanceFeePaymentService.getMaintenanceFeePaymentsForPerson(consortiumId, period, status, page);
-    }
-
-    @PostMapping
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
-    public MaintenanceFeePaymentDto updateMaintenanceFeePayment(
-            @RequestPart(value = "maintenanceFeePaymentDto") MaintenanceFeePaymentDto maintenanceFeePaymentDto,
-            @RequestPart(value = "file") MultipartFile file
-    ) throws EntityNotFoundException, MessagingException, IOException {
-        return maintenanceFeePaymentService.updateMaintenanceFeePayment(maintenanceFeePaymentDto, file);
-    }
+//    private final MaintenanceFeePaymentService maintenanceFeePaymentService;
+//
+//    @GetMapping("/consortium/{consortiumId}")
+//    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+//    public Page<MaintenanceFeePaymentDto> getMaintenanceFeePayments(
+//            @PathVariable Long consortiumId,
+//            @RequestParam(required = false) @CustomDateFormat LocalDate period,
+//            @RequestParam(required = false) EPaymentStatus status,
+//            Pageable page
+//    ) {
+//        return maintenanceFeePaymentService.getMaintenanceFeePayments(consortiumId, period, status, page);
+//    }
+//
+//    @GetMapping("/{maintenanceFeePaymentId}/download")
+//    @PreAuthorize("hasAnyAuthority('ROLE_PROPIETARY', 'ROLE_RESIDENT', 'ROLE_ADMIN')")
+//    public void downloadMaintenanceFeePayment(@PathVariable Long maintenanceFeePaymentId, HttpServletResponse response) throws EntityNotFoundException, IOException {
+//        maintenanceFeePaymentService.downloadMaintenanceFeePayment(maintenanceFeePaymentId, response);
+//    }
+//
+//    @GetMapping("/{consortiumId}/person")
+//    @PreAuthorize("hasAnyAuthority('ROLE_PROPIETARY', 'ROLE_RESIDENT')")
+//    public Page<MaintenanceFeePaymentDto> getMaintenanceFeePaymentsForPerson(
+//            @PathVariable Long consortiumId,
+//            @RequestParam (required = false) @CustomDateFormat LocalDate period,
+//            @RequestParam (required = false) EPaymentStatus status,
+//            Pageable page
+//    ) {
+//        return maintenanceFeePaymentService.getMaintenanceFeePaymentsForPerson(consortiumId, period, status, page);
+//    }
+//
+//    @PostMapping
+//    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+//    public MaintenanceFeePaymentDto updateMaintenanceFeePayment(
+//            @RequestPart(value = "maintenanceFeePaymentDto") MaintenanceFeePaymentDto maintenanceFeePaymentDto,
+//            @RequestPart(value = "file") MultipartFile file
+//    ) throws EntityNotFoundException, MessagingException, IOException {
+//        return maintenanceFeePaymentService.updateMaintenanceFeePayment(maintenanceFeePaymentDto, file);
+//    }
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.utn.interactiveconsortium.dto.DepartmentFeeQueryAdminDto;
+import com.utn.interactiveconsortium.dto.RDepartmentFeeResumeDto;
 import com.utn.interactiveconsortium.service.DepartmentFeeService;
 
 import lombok.RequiredArgsConstructor;
@@ -32,5 +33,24 @@ public class DepartmentFeeController {
          Pageable page
    ) {
       return departmentFeeService.adminQuery(consortiumId, period, page);
+   }
+
+   @PreAuthorize("hasAnyAuthority('ROLE_RESIDENT', 'ROLE_PROPIETARY')")
+   @GetMapping("/residents/query")
+   public Page<DepartmentFeeQueryAdminDto> queryForResidents(
+         @RequestParam Long consortiumId,
+         @RequestParam LocalDate period,
+         Pageable page
+   ) {
+      return departmentFeeService.residentQuery(consortiumId, period, page);
+   }
+
+   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+   @GetMapping("/resume")
+   public RDepartmentFeeResumeDto getDepartmentResume(
+         @RequestParam Long consortiumId,
+         @RequestParam LocalDate period
+   ){
+      return departmentFeeService.getDepartmentResume(consortiumId, period);
    }
 }

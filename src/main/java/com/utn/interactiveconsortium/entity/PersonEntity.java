@@ -38,8 +38,8 @@ public class PersonEntity {
     @ManyToMany(mappedBy = "persons")
     private List<ConsortiumEntity> consortiums;
 
-    @OneToMany(mappedBy = "resident", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.REFRESH, CascadeType.DETACH})
-    private List<BookingEntity> bookings;
+//    @OneToMany(mappedBy = "resident", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+//            CascadeType.REFRESH, CascadeType.DETACH})
+//    private List<BookingEntity> bookings;
 
 }

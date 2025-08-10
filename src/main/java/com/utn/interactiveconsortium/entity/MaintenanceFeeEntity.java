@@ -31,8 +31,8 @@ public class MaintenanceFeeEntity {
 
     private LocalDateTime uploadDate;
 
-    @OneToMany(mappedBy = "maintenanceFee", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MaintenanceFeePaymentEntity> maintenanceFeePayments;
+//    @OneToMany(mappedBy = "maintenanceFee", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<MaintenanceFeePaymentEntity> maintenanceFeePayments;
 
     private BigDecimal totalAmount;
 

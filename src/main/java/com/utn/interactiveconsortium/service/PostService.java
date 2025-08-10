@@ -11,6 +11,8 @@ import com.utn.interactiveconsortium.mapper.PostMapper;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.repository.PostReactionRepository;
 import com.utn.interactiveconsortium.repository.PostRepository;
+import com.utn.interactiveconsortium.util.EmailService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,8 +20,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +38,12 @@ public class PostService {
     private final PostMapper postMapper;
 
     private final LoggedUserService loggedUserService;
+
+    private final EmailService emailService;
+
+    private static final String POST_CREATE_MESSAGE_TITLE_TEMPLATE = "Nuevo Anuncio - Consorcio %s";
+
+    private static final String POST_CREATE_MESSAGE_BODY_TEMPLATE = "Se ha creado un nuevo anuncio en el consorcio %s. Anuncio: %s";
 
     public Page<PostDto> getPosts(Long idConsortium, Pageable page) {
         Page<PostEntity> postEntities = postRepository.findByConsortiumConsortiumId(idConsortium, page);
@@ -64,8 +74,28 @@ public class PostService {
         newPostEntity.setConsortium(consortium);
         newPostEntity.setCreationPostDate(LocalDateTime.now());
 
-        postRepository.save(newPostEntity);
+        Set<String> mailSet = new HashSet<>();
 
+        consortium.getDepartments().forEach(department -> {
+            if (department.getActive()) {
+                if (department.getPropietary() != null) {
+                    mailSet.add(department.getPropietary().getMail());
+                }
+                if (department.getResident() != null) {
+                    mailSet.add(department.getResident().getMail());
+                }
+            }
+        });
+
+        String[] emailsToSend = new String[mailSet.size()];
+        mailSet.toArray(emailsToSend);
+        String consortiumName = consortium.getName();
+        String postTitle = newPostEntity.getTitle();
+        String messageTitle = POST_CREATE_MESSAGE_TITLE_TEMPLATE.formatted(consortiumName);
+        String messageText = POST_CREATE_MESSAGE_BODY_TEMPLATE.formatted(consortiumName, postTitle);
+        emailService.sendSimpleMessage(emailsToSend, messageTitle, messageText);
+
+        postRepository.save(newPostEntity);
         return postMapper.convertEntityToDto(newPostEntity);
     }
 

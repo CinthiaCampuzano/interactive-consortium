@@ -13,11 +13,15 @@ import lombok.Data;
 @Data
 public class DepartmentFeeQueryAdminDto {
 
+   private Long departmentFeeId;
+
    private String departmentCode;
 
    private LocalDate issueDate;
 
    private LocalDate dueDate;
+
+   private LocalDate lastPaidDate;
 
    private BigDecimal totalAmount;
 

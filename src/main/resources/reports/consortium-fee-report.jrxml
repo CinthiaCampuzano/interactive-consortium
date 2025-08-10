@@ -1,32 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.19.1-867c00bf88cd4d784d404379d6c05e1b419e8a4c  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="consortium-fee-report" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c1a2b3c4-d5e6-f789-0123-456789abcdef">
-
-    <style name="ColumnHeader" isBold="true" fontSize="12"/>
-
+    <style name="ColumnHeader" fontSize="12" isBold="true"/>
     <parameter name="consortiumName" class="java.lang.String"/>
     <parameter name="period" class="java.lang.String"/>
     <parameter name="totalAmount" class="java.math.BigDecimal"/>
+    <parameter name="monthNameSpanish" class="java.lang.String"/>
+    <parameter name="year" class="java.lang.String"/>
+    <parameter name="dueDate" class="java.lang.String"/>
     <parameter name="PERIOD_CONCEPTS_DATASOURCE" class="net.sf.jasperreports.engine.JRDataSource"/>
     <parameter name="DEPARTMENT_FEES_DATASOURCE" class="net.sf.jasperreports.engine.JRDataSource"/>
     <parameter name="periodSubReport" class="net.sf.jasperreports.engine.JasperReport"/>
     <parameter name="departmentSubReport" class="net.sf.jasperreports.engine.JasperReport"/>
-
     <field name="amount" class="java.math.BigDecimal"/>
-
     <title>
         <band height="50" splitType="Stretch">
-            <staticText>
+            <textField>
                 <reportElement x="0" y="10" width="555" height="30" uuid="1a2b3c4d-5e6f-7890-1234-fedcba987654"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
-                    <font size="20" isBold="true"/>
+                    <font size="16" isBold="true"/>
                 </textElement>
-                <text><![CDATA[Resumen de Expensas]]></text>
-            </staticText>
+                <textFieldExpression><![CDATA["EXPENSAS DEL CONSORCIO " + $P{consortiumName} + " - PERIODO " + $P{monthNameSpanish} + "/" + $P{year}]]></textFieldExpression>
+            </textField>
         </band>
     </title>
-
     <pageHeader>
-        <band height="60" splitType="Stretch">
+        <band height="80" splitType="Stretch">
             <staticText>
                 <reportElement x="0" y="0" width="80" height="20" uuid="b1c2d3e4-f567-8901-2345-abcdef123456"/>
                 <textElement verticalAlignment="Middle">
@@ -39,7 +38,6 @@
                 <textElement verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[$P{consortiumName}]]></textFieldExpression>
             </textField>
-
             <staticText>
                 <reportElement x="0" y="20" width="80" height="20" uuid="d3e4f567-8901-2345-6789-cdef12345678"/>
                 <textElement verticalAlignment="Middle">
@@ -50,16 +48,27 @@
             <textField>
                 <reportElement x="80" y="20" width="200" height="20" uuid="e4f56789-0123-4567-8901-def123456789"/>
                 <textElement verticalAlignment="Middle"/>
-                <textFieldExpression><![CDATA[$P{period}]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$P{monthNameSpanish} + "/" + $P{year}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="40" width="80" height="20" uuid="f5678901-2345-6789-0123-ef1234567890"/>
+                <textElement verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Vencimiento:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="80" y="40" width="200" height="20" uuid="67890123-4567-8901-2345-f1234567890a"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{dueDate}]]></textFieldExpression>
             </textField>
             <line>
-                <reportElement x="0" y="55" width="555" height="1" uuid="f6a7b8c9-d0e1-f2a3-b4c5-d6e7f8a9b0c1"/>
+                <reportElement x="0" y="70" width="555" height="1" uuid="f6a7b8c9-d0e1-f2a3-b4c5-d6e7f8a9b0c1"/>
             </line>
         </band>
     </pageHeader>
-
     <detail>
-        <band height="100" > <!-- Ajusta la altura según necesites -->
+        <band height="65">
             <staticText>
                 <reportElement x="0" y="0" width="555" height="20" uuid="0df0a1ec-9481-457e-8280-42e63e10c1f2"/>
                 <textElement>
@@ -68,12 +77,13 @@
                 <text><![CDATA[Detalle de Conceptos del Período:]]></text>
             </staticText>
             <subreport>
-                <reportElement x="0" y="20" width="555" height="45" uuid="4ccb1bda-bc8c-4d24-b679-3eedac13810b"  isPrintWhenDetailOverflows="true"/> <!-- Ajusta altura -->
+                <reportElement x="0" y="20" width="555" height="45" isPrintWhenDetailOverflows="true" uuid="4ccb1bda-bc8c-4d24-b679-3eedac13810b"/>
                 <dataSourceExpression><![CDATA[$P{PERIOD_CONCEPTS_DATASOURCE}]]></dataSourceExpression>
                 <subreportExpression><![CDATA[$P{periodSubReport}]]></subreportExpression>
             </subreport>
         </band>
-        <band height="50"> <!-- Otra banda o la misma, ajusta la altura -->
+        <band height="50"/>
+        <band height="45">
             <staticText>
                 <reportElement x="0" y="0" width="555" height="20" uuid="775af974-7faf-4460-ac05-626e3e791e46"/>
                 <textElement>
@@ -82,7 +92,7 @@
                 <text><![CDATA[Detalle de Expensas por Departamento:]]></text>
             </staticText>
             <subreport>
-                <reportElement x="0" y="20" width="555" height="25" uuid="8c27e812-7b8e-439b-9c61-0404d883d45b"/> <!-- Ajusta altura -->
+                <reportElement x="0" y="20" width="555" height="25" uuid="8c27e812-7b8e-439b-9c61-0404d883d45b"/>
                 <dataSourceExpression><![CDATA[$P{DEPARTMENT_FEES_DATASOURCE}]]></dataSourceExpression>
                 <subreportExpression><![CDATA[$P{departmentSubReport}]]></subreportExpression>
             </subreport>

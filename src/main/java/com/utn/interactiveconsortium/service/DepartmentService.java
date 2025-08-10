@@ -3,15 +3,20 @@ package com.utn.interactiveconsortium.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.transaction.Transactional;
+
 import com.utn.interactiveconsortium.dto.DepartmentDto;
 import com.utn.interactiveconsortium.entity.ConsortiumEntity;
 import com.utn.interactiveconsortium.entity.DepartmentEntity;
 import com.utn.interactiveconsortium.entity.PersonEntity;
 import com.utn.interactiveconsortium.enums.EConsortiumType;
+import com.utn.interactiveconsortium.exception.CustomGenericException;
 import com.utn.interactiveconsortium.exception.CustomIllegalArgumentException;
 import com.utn.interactiveconsortium.exception.EntityAlreadyExistsException;
 import com.utn.interactiveconsortium.exception.EntityNotFoundException;
 import com.utn.interactiveconsortium.mapper.DepartmentMapper;
+import com.utn.interactiveconsortium.repository.AdjustmentRepository;
+import com.utn.interactiveconsortium.repository.BookingRepository;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.repository.DepartmentRepository;
 import com.utn.interactiveconsortium.repository.PersonRepository;
@@ -28,8 +33,12 @@ public class DepartmentService {
     private final PersonRepository personRepository;
     private final DepartmentMapper departmentMapper;
 
+    private final AdjustmentRepository adjustmentRepository;
+
+    private final BookingRepository bookingRepository;
+
     public Page<DepartmentDto> getDepartmentsByConsortium(Long consortiumId, Pageable pageable) {
-        Page<DepartmentEntity> departmentEntities = departmentRepository.findByConsortium_ConsortiumId(consortiumId, pageable);
+        Page<DepartmentEntity> departmentEntities = departmentRepository.findByConsortium_ConsortiumIdOrderByCode(consortiumId, pageable);
         return departmentMapper.toPage(departmentEntities);
     }
 
@@ -63,10 +72,11 @@ public class DepartmentService {
                 .orElseThrow(() -> new EntityNotFoundException("Residente no encontrado"))
                 : null;
 
-        newDepartmentEntity.setConsortium(consortium);
         newDepartmentEntity.setPropietary(propietary);
         newDepartmentEntity.setResident(resident);
-        newDepartmentEntity.setActive(true);
+        newDepartmentEntity.setConsortium(consortium);
+        boolean isActive = propietary != null;
+        newDepartmentEntity.setActive(isActive);
 
         departmentRepository.save(newDepartmentEntity);
 
@@ -87,7 +97,7 @@ public class DepartmentService {
                 DepartmentEntity newDepartment = new DepartmentEntity();
                 newDepartment.setCode(i + getLetterForDepartment(j));
                 newDepartment.setConsortium(consortiumEntity);
-                newDepartment.setActive(true);
+                newDepartment.setActive(false);
                 departments.add(newDepartment);
             }
         }
@@ -102,7 +112,9 @@ public class DepartmentService {
          return String.valueOf((char) (number + 64));
       }
 
-    public void updateDepartment(DepartmentDto departmentToUpdate) throws EntityNotFoundException, EntityAlreadyExistsException {
+    @Transactional(rollbackOn = Exception.class)
+    public void updateDepartment(DepartmentDto departmentToUpdate)
+          throws EntityNotFoundException, EntityAlreadyExistsException, CustomGenericException {
         boolean departmentExists = departmentRepository.existsById(departmentToUpdate.getDepartmentId());
 
         if (!departmentExists) {
@@ -136,22 +148,34 @@ public class DepartmentService {
                 .orElseThrow(() -> new EntityNotFoundException("Residente no encontrado"))
                 : null;
 
+        if (departmentToUpdate.getActive() && propietary == null) {
+            throw new CustomGenericException("El departamento no puede estar habilitado sin propietario");
+        }
+
         departmentToUpdateEntity.setCode(departmentToUpdate.getCode());
         departmentToUpdateEntity.setPropietary(propietary);
         departmentToUpdateEntity.setResident(resident);
         departmentToUpdateEntity.setActive(departmentToUpdate.getActive());
 
+        if (!departmentToUpdate.getActive()) {
+            bookingRepository.deleteAllByDepartment_DepartmentId(departmentToUpdate.getDepartmentId());
+            adjustmentRepository.deleteAllByDepartment_DepartmentId(departmentToUpdate.getDepartmentId());
+        }
+
         departmentRepository.save(departmentToUpdateEntity);
     }
 
     public void deleteDepartment(Long idDepartment) throws EntityNotFoundException {
-        boolean departmentExists = departmentRepository.existsById(idDepartment);
+        DepartmentEntity department = departmentRepository
+              .findById(idDepartment)
+              .orElseThrow(() -> new EntityNotFoundException("No existe ese departamento"));
 
-        if (!departmentExists) {
-            throw new EntityNotFoundException("No existe ese departamento");
-        }
-
-        departmentRepository.deleteById(idDepartment);
+        bookingRepository.deleteAllByDepartment_DepartmentId(department.getDepartmentId());
+        adjustmentRepository.deleteAllByDepartment_DepartmentId(department.getDepartmentId());
+        departmentRepository.delete(department);
     }
 
+    public List<DepartmentDto> getDepartmentsListByConsortiumId(Long consortiumId) {
+        return departmentMapper.toDtoList(departmentRepository.findByConsortiumConsortiumId(consortiumId));
+    }
 }

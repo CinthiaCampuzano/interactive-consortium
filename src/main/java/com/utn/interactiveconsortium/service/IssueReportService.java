@@ -10,6 +10,8 @@ import com.utn.interactiveconsortium.exception.IssueReportStatusException;
 import com.utn.interactiveconsortium.mapper.IssueReportMapper;
 import com.utn.interactiveconsortium.repository.ConsortiumRepository;
 import com.utn.interactiveconsortium.repository.IssueReportRepository;
+import com.utn.interactiveconsortium.util.EmailService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +31,16 @@ public class IssueReportService {
     private final ConsortiumRepository consortiumRepository;
 
     private final IssueReportMapper issueReportMapper;
+
+    private final EmailService emailService;
+
+    private static final String ISSUER_CREATE_MESSAGE_TITLE_TEMPLATE = "Nuevo Reclamo Generado - Consorcio %s";
+
+    private static final String ISSUER_CREATE_MESSAGE_BODY_TEMPLATE = "%s ha creado un nuevo reclamo en el consorcio %s";
+
+    private static final String ISSUER_CLOSE_TITLE_TEMPLATE = "Reclamo Cerrado - Consorcio %s";
+
+    private static final String ISSUER_CLOSE_MESSAGE_BODY_TEMPLATE = "El reclamo ha sido cerrado por el adminsitrador. Reclamo: %s";
 
     public Page<IssueReportDto> getIssueReportAdmin(Long consortiumId, EIssueReportStatus status, Pageable pageable) throws EntityNotFoundException {
         List<Long> associatedConsortiumIds = loggedUserService.getAssociatedConsortiumIds();
@@ -72,7 +84,13 @@ public class IssueReportService {
         issueReport.setStatus(EIssueReportStatus.PENDING);
         issueReport.setCreatedDate(LocalDateTime.now());
 
-        return issueReportMapper.convertEntityToDto(issueReportRepository.save(issueReport));
+        IssueReportEntity savedIssueReport = issueReportRepository.save(issueReport);
+        String consortiumName = savedIssueReport.getConsortium().getName();
+        String personaName = savedIssueReport.getPerson().getName() + " " + savedIssueReport.getPerson().getLastName();
+        String messageTitle = ISSUER_CREATE_MESSAGE_TITLE_TEMPLATE.formatted(consortiumName);
+        String messageText = ISSUER_CREATE_MESSAGE_BODY_TEMPLATE.formatted(personaName, consortiumName);
+        emailService.sendSimpleMessage(savedIssueReport.getConsortium().getAdministrator().getMail(), messageTitle, messageText);
+        return issueReportMapper.convertEntityToDto(savedIssueReport);
     }
 
     public void deleteIssueReport(Long issueReportId) throws EntityNotFoundException, IssueReportStatusException {
@@ -114,7 +132,13 @@ public class IssueReportService {
         issueReport.setStatus(EIssueReportStatus.FINISHED);
         issueReport.setResponseDate(LocalDateTime.now());
 
-        return issueReportMapper.convertEntityToDto(issueReportRepository.save(issueReport));
+        IssueReportEntity savedIssueReport = issueReportRepository.save(issueReport);
+        String consortiumName = savedIssueReport.getConsortium().getName();
+        String issuerReportTitle = savedIssueReport.getSubject();
+        String messageTitle = ISSUER_CLOSE_TITLE_TEMPLATE.formatted(consortiumName);
+        String messageText = ISSUER_CLOSE_MESSAGE_BODY_TEMPLATE.formatted(issuerReportTitle);
+        emailService.sendSimpleMessage(savedIssueReport.getPerson().getMail(), messageTitle, messageText);
+        return issueReportMapper.convertEntityToDto(savedIssueReport);
     }
 
     public IssueReportCardsDto getIssueReportCards(Long consortiumId) throws EntityNotFoundException {

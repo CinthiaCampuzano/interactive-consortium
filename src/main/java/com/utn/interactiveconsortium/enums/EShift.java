@@ -1,6 +1,6 @@
 package com.utn.interactiveconsortium.enums;
 
-public enum Shift {
+public enum EShift {
     MORNING,
     NIGHT
 }

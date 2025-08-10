@@ -54,6 +54,8 @@ public class ConsortiumService {
 
     private final DepartmentService departmentService;
 
+    private final ConsortiumFeeConceptService conceptService;
+
     public Page<ConsortiumDto> getConsortiums(Pageable page){
         return consortiumMapper.toPage(consortiumRepository.findAll(page));
     }
@@ -150,6 +152,8 @@ public class ConsortiumService {
 
         ConsortiumEntity savedConsortium = consortiumRepository.save(newConsortiumEntity);
 
+        conceptService.createDefaultConceptsFor(savedConsortium);
+
         if (savedConsortium.getConsortiumType() == EConsortiumType.BUILDING) {
             departmentService.massiveDepartmentCreation(savedConsortium);
         }
@@ -202,6 +206,7 @@ public class ConsortiumService {
 
     }
 
+    @Transactional(rollbackOn = Exception.class)
     public void deletePersonFromConsortium(Long idConsortium, Long idPerson) throws EntityNotFoundException {
         ConsortiumEntity consortium = consortiumRepository.findById(idConsortium)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró el consorcio"));
@@ -211,7 +216,9 @@ public class ConsortiumService {
         if (!consortium.getPersons().remove(person)) {
             throw new EntityNotFoundException("La persona no está asociada con el consorcio");
         }
-
+        consortiumRepository.removePropietaryFromDepartments(consortium, person);
+        consortiumRepository.removeResidentFromDepartments(consortium, person);
+        consortiumRepository.deleteAllIssuerReportFromPerson(consortium, person);
         consortiumRepository.save(consortium);
     }
 

@@ -1,5 +1,7 @@
 package com.utn.interactiveconsortium.repository;
 
+import java.util.List;
+
 import com.utn.interactiveconsortium.entity.DepartmentEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +27,9 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, Lo
             "AND (:code IS NULL OR d.code LIKE %:code%) " +
             "AND (:ownerNameOrLastName IS NULL OR (p.name LIKE %:ownerNameOrLastName% OR p.lastName LIKE %:ownerNameOrLastName%)) " +
             "AND (:residentNameOrLastName IS NULL OR (r.name LIKE %:residentNameOrLastName% OR r.lastName LIKE %:residentNameOrLastName%))" +
-            "AND (:active IS NULL OR d.active = :active)")
+            "AND (:active IS NULL OR d.active = :active)"
+          + "ORDER BY d.code ASC"
+    )
     Page<DepartmentEntity> findDepartmentByFilters(
             @Param("idConsortium") Long idConsortium,
             @Param("code") String code,
@@ -34,7 +38,7 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, Lo
             @Param("active") Boolean active,
             Pageable page);
 
-    Page<DepartmentEntity> findByConsortium_ConsortiumId(Long consortiumId, Pageable pageable);
+    Page<DepartmentEntity> findByConsortium_ConsortiumIdOrderByCode(Long consortiumId, Pageable pageable);
 
     @Query("""
           SELECT COUNT(department.departmentId)
@@ -44,4 +48,9 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, Lo
           """)
     Integer getNumberOfActiveDepartmentsByConsortiumId(Long consortiumId);
 
+    @Query("""
+        SELECT d FROM DepartmentEntity d WHERE d.consortium.consortiumId = :consortiumId AND d.active = true ORDER BY d.code
+    """)
+    List<DepartmentEntity> findByConsortiumConsortiumId(Long consortiumId);
 }
+

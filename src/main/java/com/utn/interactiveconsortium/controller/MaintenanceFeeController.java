@@ -22,30 +22,30 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class MaintenanceFeeController {
 
-    private final MaintenanceFeeService maintenanceFeeService;
-
-    @GetMapping
-    public Page<MaintenanceFeeDto> getMaintenanceFees(Long consortiumId, Pageable page) {
-        return maintenanceFeeService.getMaintenanceFees(consortiumId, page);
-    }
-
-    @PostMapping("/upload")
-    public MaintenanceFeeDto createMaintenanceFee(
-            @RequestParam Long consortiumId,
-            @RequestParam BigDecimal totalAmount,
-            @RequestPart(value = "file", required = false) MultipartFile file
-    ) throws EntityNotFoundException, EntityAlreadyExistsException, MessagingException, IOException {
-        return maintenanceFeeService.create(consortiumId, totalAmount, file);
-    }
-
-    @GetMapping("/{maintenanceFeeId}/download")
-    public void downloadMaintenanceFee(@PathVariable Long maintenanceFeeId,  HttpServletResponse response) throws EntityNotFoundException, MessagingException, IOException {
-        maintenanceFeeService.downloadMaintenanceFee(maintenanceFeeId, response);
-    }
-
-    @DeleteMapping
-    public void deleteMaintenanceFee(Long maintenanceFeeId) throws EntityNotFoundException, InvalidMaintenanceFeePeriodException {
-        maintenanceFeeService.deleteByMaintenanceFeeId(maintenanceFeeId);
-    }
-
+//    private final MaintenanceFeeService maintenanceFeeService;
+//
+//    @GetMapping
+//    public Page<MaintenanceFeeDto> getMaintenanceFees(Long consortiumId, Pageable page) {
+//        return maintenanceFeeService.getMaintenanceFees(consortiumId, page);
+//    }
+//
+//    @PostMapping("/upload")
+//    public MaintenanceFeeDto createMaintenanceFee(
+//            @RequestParam Long consortiumId,
+//            @RequestParam BigDecimal totalAmount,
+//            @RequestPart(value = "file", required = false) MultipartFile file
+//    ) throws EntityNotFoundException, EntityAlreadyExistsException, MessagingException, IOException {
+//        return maintenanceFeeService.create(consortiumId, totalAmount, file);
+//    }
+//
+//    @GetMapping("/{maintenanceFeeId}/download")
+//    public void downloadMaintenanceFee(@PathVariable Long maintenanceFeeId,  HttpServletResponse response) throws EntityNotFoundException, MessagingException, IOException {
+//        maintenanceFeeService.downloadMaintenanceFee(maintenanceFeeId, response);
+//    }
+//
+//    @DeleteMapping
+//    public void deleteMaintenanceFee(Long maintenanceFeeId) throws EntityNotFoundException, InvalidMaintenanceFeePeriodException {
+//        maintenanceFeeService.deleteByMaintenanceFeeId(maintenanceFeeId);
+//    }
+//
 }
