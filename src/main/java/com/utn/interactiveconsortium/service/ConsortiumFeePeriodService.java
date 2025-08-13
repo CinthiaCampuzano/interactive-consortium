@@ -228,13 +228,19 @@ public class ConsortiumFeePeriodService {
 
    @Async
    @Transactional(value = Transactional.TxType.REQUIRES_NEW, rollbackOn = Exception.class)
-   public void updateConsortiumFeePeriodStatus(Long consortiumFeePeriodId, EConsortiumFeePeriodStatus status) {
+   public void updateConsortiumFeePeriodStatusAsync(Long consortiumFeePeriodId, EConsortiumFeePeriodStatus status) {
       ConsortiumFeePeriodEntity consortiumFeePeriod = consortiumFeePeriodRepository.findById(consortiumFeePeriodId)
                                                                                    .orElseThrow();
       consortiumFeePeriod.setFeePeriodStatus(status);
       consortiumFeePeriodRepository.save(consortiumFeePeriod);
    }
 
+   public void updateConsortiumFeePeriodStatus(Long consortiumFeePeriodId, EConsortiumFeePeriodStatus status) {
+      ConsortiumFeePeriodEntity consortiumFeePeriod = consortiumFeePeriodRepository.findById(consortiumFeePeriodId)
+                                                                                   .orElseThrow();
+      consortiumFeePeriod.setFeePeriodStatus(status);
+      consortiumFeePeriodRepository.save(consortiumFeePeriod);
+   }
 
    @Async
    @Transactional(value = Transactional.TxType.REQUIRES_NEW, rollbackOn = Exception.class)

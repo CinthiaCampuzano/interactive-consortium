@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.batch.core.ItemProcessListener;
-import org.springframework.batch.core.annotation.AfterRead;
-import org.springframework.batch.core.annotation.BeforeProcess;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +22,6 @@ import com.utn.interactiveconsortium.enums.EConsortiumFeeDistributionType;
 import com.utn.interactiveconsortium.enums.EConsortiumFeePeriodStatus;
 import com.utn.interactiveconsortium.enums.EOperationType;
 import com.utn.interactiveconsortium.repository.AdjustmentRepository;
-import com.utn.interactiveconsortium.repository.ConsortiumFeePeriodRepository;
 import com.utn.interactiveconsortium.service.ConsortiumFeeConceptService;
 import com.utn.interactiveconsortium.service.ConsortiumFeePeriodService;
 
@@ -133,11 +130,11 @@ public class ConsortiumFeeProcessor implements ItemProcessor<ConsortiumFeePeriod
 
    @Override
    public void beforeProcess(ConsortiumFeePeriodEntity item) {
-      consortiumFeePeriodService.updateConsortiumFeePeriodStatus(item.getConsortiumFeePeriodId(), EConsortiumFeePeriodStatus.IN_PROCESS);
+      consortiumFeePeriodService.updateConsortiumFeePeriodStatusAsync(item.getConsortiumFeePeriodId(), EConsortiumFeePeriodStatus.IN_PROCESS);
    }
 
    @Override
    public void onProcessError(ConsortiumFeePeriodEntity item, Exception e) {
-      consortiumFeePeriodService.updateConsortiumFeePeriodStatus(item.getConsortiumFeePeriodId(), EConsortiumFeePeriodStatus.ERROR);
+      consortiumFeePeriodService.updateConsortiumFeePeriodStatusAsync(item.getConsortiumFeePeriodId(), EConsortiumFeePeriodStatus.ERROR);
    }
 }

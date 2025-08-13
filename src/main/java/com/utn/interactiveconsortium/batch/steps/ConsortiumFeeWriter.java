@@ -8,12 +8,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import jakarta.mail.MessagingException;
 
@@ -51,7 +47,6 @@ import com.utn.interactiveconsortium.util.EmailService;
 import com.utn.interactiveconsortium.util.MinioUtils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -174,7 +169,7 @@ public class ConsortiumFeeWriter implements ItemWriter<ConsortiumFeeWrapper>, It
 
          // Guardar la ruta en la entidad
          consortiumFeePeriod.setPdfFilePath(consortiumFilePath);
-         consortiumFeePeriodRepository.save(consortiumFeePeriod);
+         consortiumFeePeriod = consortiumFeePeriodRepository.save(consortiumFeePeriod);
 
          // Generar PDFs individuales para cada departamento
          Map<String, List<Pair<String, byte[]>>> emailAttachments = new HashMap<>();
